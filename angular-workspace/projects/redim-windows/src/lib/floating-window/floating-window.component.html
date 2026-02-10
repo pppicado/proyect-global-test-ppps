@@ -1,0 +1,29 @@
+<div class="window-container card shadow"
+     cdkDrag
+     [cdkDragFreeDragPosition]="{x: x, y: y}"
+     (cdkDragStarted)="onDragStart($event)"
+     (cdkDragEnded)="onDragEnd($event)"
+     (mousedown)="onWindowClick()"
+     [style.width.px]="width"
+     [style.height.px]="height"
+     [style.zIndex]="zIndex"
+     [style.--window-width.px]="width"
+     [style.--window-height.px]="height">
+
+  <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white"
+       cdkDragHandle
+       style="cursor: move;">
+    <h6 class="mb-0 user-select-none">{{ title }}</h6>
+    <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="closeWindow()"></button>
+  </div>
+
+  <div class="card-body overflow-auto p-0 position-relative">
+    <ng-template [cdkPortalOutlet]="contentPortal"></ng-template>
+    <ng-content></ng-content>
+  </div>
+
+  <!-- Resize Handles -->
+  <div class="resize-handle resize-handle-e" (mousedown)="initResize($event, 'e')"></div>
+  <div class="resize-handle resize-handle-s" (mousedown)="initResize($event, 's')"></div>
+  <div class="resize-handle resize-handle-se" (mousedown)="initResize($event, 'se')"></div>
+</div>
