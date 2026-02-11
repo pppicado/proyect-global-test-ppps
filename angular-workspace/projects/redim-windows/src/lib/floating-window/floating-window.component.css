@@ -20,6 +20,31 @@
     pointer-events: auto;
 }
 
+/* content scrollbar styling */
+.card-body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.card-body::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.card-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.card-body::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.card-body:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Resize handles positioned INSIDE the container (Reverted negative margins) */
 .resize-handle-e {
     right: 0;
     top: 0;

@@ -23,6 +23,9 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() minWidth: number = 10; // Default 10vw
   @Input() minHeight: number = 10; // Default 10vh
 
+  @Input() scrollIcon: string = ''; // 'https://png.pngtree.com/png-clipart/20250116/original/pngtree-beautiful-amber-stone-featuring-unique-translucent-textures-png-image_20234893.png'
+  @Input() scrollThumbSize: number = 2; // Default 2vw
+
   @HostBinding('style.--resizeBorder') resizeBorderStyle: string = this.resizeBorder + 'vw';
 
   @HostBinding('style.--width') get widthStyle() { return this.width + 'vw'; }

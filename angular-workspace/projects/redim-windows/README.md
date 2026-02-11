@@ -125,3 +125,21 @@ The window container automatically sets CSS variables `--window-width` and `--wi
 | `resizeBorder` | `number` | `0.5` | Thickness of the resize handles in vw. |
 | `minWidth` | `number` | `10` | Minimum width in vw. |
 | `minHeight` | `number` | `10` | Minimum height in vh. |
+| `scrollIcon` | `string` | `''` | URL for the custom scrollbar thumb image. |
+| `scrollThumbSize` | `number` | `2` | Size of the scrollbar thumb in vw. |
+
+### `CustomScrollbarComponent`
+
+You can use the custom scrollbar independently to wrap any content.
+
+```html
+<lib-custom-scrollbar [scrollIcon]="'assets/icon.png'" [scrollThumbSize]="2">
+  <div style="height: 200vh">Long content...</div>
+</lib-custom-scrollbar>
+```
+
+| Input | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `scrollIcon` | `string` | `''` | URL for the thumb image. If empty, a CSS circle is used. |
+| `scrollThumbSize` | `number` | `2` | Size of the thumb in vw. |
+

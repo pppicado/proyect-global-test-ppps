@@ -3,10 +3,11 @@
   [style.width.vw]="width" [style.height.vh]="height" [style.zIndex]="zIndex" [style.--window-width.vw]="width"
   [style.--window-height.vh]="height">
 
-  <div class="card-body overflow-auto p-0 position-relative">
+  <lib-custom-scrollbar class="card-body p-0 position-relative" [scrollIcon]="scrollIcon"
+    [scrollThumbSize]="scrollThumbSize">
     <ng-template [cdkPortalOutlet]="contentPortal"></ng-template>
     <ng-content></ng-content>
-  </div>
+  </lib-custom-scrollbar>
 
   <!-- Resize Handles -->
   <div class="resize-handle resize-handle-e" (mousedown)="initResize($event, 'e')"></div>
