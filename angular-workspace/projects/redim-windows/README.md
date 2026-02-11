@@ -4,6 +4,8 @@
 
 ## Features
 
+- **Responsive Viewport Units**: Uses `vw` and `vh` for all dimensions and positioning, ensuring windows scale with the browser.
+- **Configurable**: Customize resize handles thickness and minimum dimensions.
 - **Draggable Windows**: Move windows anywhere on the screen.
 - **Resizable**: Resize windows from edges and corners.
 - **Non-blocking**: Windows do not block interaction with the rest of the page.
@@ -61,11 +63,10 @@ export class AppComponent {
 
   openWindow() {
     this.windowService.open(MyComponent, {
-      title: 'My Floating Window',
-      width: 500,
-      height: 400,
-      x: 100,
-      y: 100,
+      width: 50, // 50vw (50% of viewport width)
+      height: 40, // 40vh (40% of viewport height)
+      x: 25, // 25vw from left
+      y: 30, // 30vh from top
       data: { message: 'Hello World' }
     });
   }
@@ -111,9 +112,16 @@ The window container automatically sets CSS variables `--window-width` and `--wi
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `title` | `string` | `'Window'` | The title displayed in the header. |
-| `width` | `number` | `400` | Initial width in pixels. |
-| `height` | `number` | `300` | Initial height in pixels. |
-| `x` | `number` | `100` | Initial X position (left). |
-| `y` | `number` | `100` | Initial Y position (top). |
+| `width` | `number` | `30` | Initial width in viewport width units (vw). |
+| `height` | `number` | `30` | Initial height in viewport height units (vh). |
+| `x` | `number` | `10` | Initial X position in viewport width units (vw). |
+| `y` | `number` | `10` | Initial Y position in viewport height units (vh). |
 | `data` | `any` | `undefined` | Data to pass to the component via `WINDOW_DATA`. |
+
+### `FloatingWindowComponent` Inputs
+
+| Input | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `resizeBorder` | `number` | `0.5` | Thickness of the resize handles in vw. |
+| `minWidth` | `number` | `10` | Minimum width in vw. |
+| `minHeight` | `number` | `10` | Minimum height in vh. |

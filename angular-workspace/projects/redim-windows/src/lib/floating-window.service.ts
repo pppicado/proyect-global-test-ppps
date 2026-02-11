@@ -33,7 +33,7 @@ export class FloatingWindowService {
       hasBackdrop: false,
       scrollStrategy: this.overlay.scrollStrategies.noop()
     });
-
+                          
     const overlayRef = this.overlay.create(overlayConfig);
     const windowPortal = new ComponentPortal(FloatingWindowComponent);
     const windowRef = overlayRef.attach(windowPortal);
