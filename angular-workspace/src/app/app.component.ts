@@ -11,15 +11,15 @@ import { FormComponent } from './form/form.component';
 export class AppComponent {
   title = 'angular-workspace';
 
-  constructor(private floatingWindowService: FloatingWindowService) {}
+  constructor(private floatingWindowService: FloatingWindowService) { }
 
   openChart() {
     this.floatingWindowService.open(ChartComponent, {
       title: 'Chart Window',
-      width: 500,
-      height: 400,
-      x: 50,
-      y: 300,
+      width: 50,
+      height: 40,
+      x: 5,
+      y: 30,
       data: { id: 1, name: 'Sample Data' }
     });
   }
@@ -27,10 +27,10 @@ export class AppComponent {
   openForm() {
     this.floatingWindowService.open(FormComponent, {
       title: 'Form Window',
-      width: 400,
-      height: 300,
-      x: 300,
-      y: 200
+      width: 40,
+      height: 30,
+      x: 30,
+      y: 20
     });
   }
 }

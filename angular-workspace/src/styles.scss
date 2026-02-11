@@ -1,0 +1,29 @@
+/* You can add global styles to this file, and also import other style files */
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables"; // Default values
+
+// 4. Include any other parts of Bootstrap
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
+
+// 5. Optionally include the parts of Bootstrap you need
+@import "bootstrap/scss/root";
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/type";
+@import "bootstrap/scss/images";
+@import "bootstrap/scss/containers";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/forms";
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/transitions";
+@import "bootstrap/scss/dropdown"; // Needed for some utilities or components
+@import "bootstrap/scss/button-group";
+// Not using Nav/Navbar/Card/Accordion/Breadcrumb/Pagination/Badge/Alert/Progress/ListGroup/Close/Toasts/Modal/Tooltip/Popover/Carousel/Spinners/Offcanvas/Placeholders for now to save size
+
+// 6. Optionally include utilities API last to generate utility classes
+@import "bootstrap/scss/helpers";
+@import "bootstrap/scss/utilities/api";
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

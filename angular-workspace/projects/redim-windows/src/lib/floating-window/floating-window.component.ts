@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, Output, Renderer2, ViewChild, OnDestroy, AfterViewInit, OnInit } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output, Renderer2, OnDestroy, AfterViewInit, OnInit } from '@angular/core';
 import { CdkDragEnd, CdkDragStart } from '@angular/cdk/drag-drop';
 import { Portal } from '@angular/cdk/portal';
 
@@ -8,20 +8,35 @@ import { Portal } from '@angular/cdk/portal';
   styleUrls: ['./floating-window.component.css']
 })
 export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy {
-  @Input() title: string = 'Window';
-  @Input() width: number = 400;
-  @Input() height: number = 300;
-  @Input() x: number = 100;
-  @Input() y: number = 100;
+  @Input() width: number = 30; // Default 30vw
+  @Input() height: number = 30; // Default 30vh
+  @Input() x: number = 10; // Default 10vw
+  @Input() y: number = 10; // Default 10vh
   @Input() zIndex: number = 1000;
   @Input() contentPortal: Portal<any> | null = null;
 
   @Output() close = new EventEmitter<void>();
   @Output() focus = new EventEmitter<void>();
-  @Output() sizeChange = new EventEmitter<{width: number, height: number}>();
+  @Output() sizeChange = new EventEmitter<{ width: number, height: number }>();
 
-  // Position object for cdkDrag
-  dragPosition = {x: 0, y: 0};
+  @Input() resizeBorder: number = 0.5; // Default 0.5vw
+  @Input() minWidth: number = 10; // Default 10vw
+  @Input() minHeight: number = 10; // Default 10vh
+
+  @HostBinding('style.--resizeBorder') resizeBorderStyle: string = this.resizeBorder + 'vw';
+
+  @HostBinding('style.--width') get widthStyle() { return this.width + 'vw'; }
+  @HostBinding('style.--height') get heightStyle() { return this.height + 'vh'; }
+  @HostBinding('style.--left') get leftStyle() { return this.x + 'vw'; }
+  @HostBinding('style.--top') get topStyle() { return this.y + 'vh'; }
+  @HostBinding('style.--z-index') get zIndexStyle() { return this.zIndex; }
+
+  get dragPositionPixels() {
+    return {
+      x: (this.x * window.innerWidth) / 100,
+      y: (this.y * window.innerHeight) / 100
+    };
+  }
 
   private isResizing: boolean = false;
   private resizeDirection: string = '';
@@ -29,18 +44,18 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   private startY: number = 0;
   private startWidth: number = 0;
   private startHeight: number = 0;
+  private startXWindow: number = 0;
+  private startYWindow: number = 0;
 
   private mouseMoveListener: Function | null = null;
   private mouseUpListener: Function | null = null;
 
-  constructor(private renderer: Renderer2) {}
+  constructor(private renderer: Renderer2) { }
 
   ngOnInit() {
-    this.dragPosition = {x: this.x, y: this.y};
   }
 
   ngAfterViewInit() {
-    // Initial size is set via bindings
   }
 
   ngOnDestroy() {
@@ -53,10 +68,11 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
 
   onDragEnd(event: CdkDragEnd) {
     const element = event.source.getRootElement();
-    const transform = element.style.transform;
-    this.dragPosition = event.source.getFreeDragPosition();
-    this.x = this.dragPosition.x;
-    this.y = this.dragPosition.y;
+    const rect = element.getBoundingClientRect();
+    const scrollX = window.scrollX || window.pageXOffset;
+    const scrollY = window.scrollY || window.pageYOffset;
+    this.x = ((rect.left + scrollX) / window.innerWidth) * 100;
+    this.y = ((rect.top + scrollY) / window.innerHeight) * 100;
   }
 
   onWindowClick() {
@@ -70,7 +86,7 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   // Resizing logic
   initResize(event: MouseEvent, direction: string) {
     event.preventDefault();
-    event.stopPropagation(); // Prevent drag start
+    event.stopPropagation();
 
     this.isResizing = true;
     this.resizeDirection = direction;
@@ -78,30 +94,41 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
     this.startY = event.clientY;
     this.startWidth = this.width;
     this.startHeight = this.height;
+    this.startXWindow = this.x;
+    this.startYWindow = this.y;
 
     this.focus.emit();
 
-    // Add global event listeners
     this.mouseMoveListener = this.renderer.listen('document', 'mousemove', (e) => this.onResize(e));
     this.mouseUpListener = this.renderer.listen('document', 'mouseup', () => this.stopResize());
   }
 
   onResize(event: MouseEvent) {
     if (!this.isResizing) return;
+    const dxPx = event.clientX - this.startX;
+    const dyPx = event.clientY - this.startY;
+    const dxVw = (dxPx / window.innerWidth) * 100;
+    const dyVh = (dyPx / window.innerHeight) * 100;
 
-    const dx = event.clientX - this.startX;
-    const dy = event.clientY - this.startY;
-
-    if (this.resizeDirection === 'e') {
-      this.width = Math.max(200, this.startWidth + dx);
-    } else if (this.resizeDirection === 's') {
-      this.height = Math.max(150, this.startHeight + dy);
-    } else if (this.resizeDirection === 'se') {
-      this.width = Math.max(200, this.startWidth + dx);
-      this.height = Math.max(150, this.startHeight + dy);
+    for (const direction of this.resizeDirection) {
+      switch (direction) {
+        case 'e':
+          this.width = Math.max(10, this.startWidth + dxVw);
+          break;
+        case 'w':
+          this.width = Math.max(10, this.startWidth - dxVw);
+          this.x = this.startXWindow + (this.startWidth - this.width);
+          break;
+        case 's':
+          this.height = Math.max(this.minHeight, this.startHeight + dyVh);
+          break;
+        case 'n':
+          this.height = Math.max(this.minHeight, this.startHeight - dyVh);
+          this.y = this.startYWindow + (this.startHeight - this.height);
+          break;
+      }
     }
-
-    this.sizeChange.emit({width: this.width, height: this.height});
+    this.sizeChange.emit({ width: this.width, height: this.height });
   }
 
   stopResize() {

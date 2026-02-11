@@ -20,7 +20,7 @@ export interface FloatingWindowConfig {
 export class FloatingWindowService {
   private zIndexCounter = 1000;
 
-  constructor(private overlay: Overlay, private injector: Injector) {}
+  constructor(private overlay: Overlay, private injector: Injector) { }
 
   open<T>(componentOrTemplate: Type<T> | TemplateRef<T>, config: FloatingWindowConfig = {}): ComponentRef<FloatingWindowComponent> {
     const positionStrategy = this.overlay.position()
@@ -39,11 +39,10 @@ export class FloatingWindowService {
     const windowRef = overlayRef.attach(windowPortal);
     const windowInstance = windowRef.instance;
 
-    windowInstance.title = config.title || 'Window';
-    windowInstance.width = config.width || 400;
-    windowInstance.height = config.height || 300;
-    windowInstance.x = config.x || 100;
-    windowInstance.y = config.y || 100;
+    windowInstance.width = config.width || 30;
+    windowInstance.height = config.height || 30;
+    windowInstance.x = config.x || 10;
+    windowInstance.y = config.y || 10;
     windowInstance.zIndex = this.zIndexCounter++;
 
     // Create Injector for user component data
@@ -89,7 +88,7 @@ export class FloatingWindowService {
 
     // Enable pointer events on the overlay pane (the window itself)
     if (overlayRef.overlayElement) {
-       overlayRef.overlayElement.style.pointerEvents = 'none'; // Set to none so clicks pass through pane
+      overlayRef.overlayElement.style.pointerEvents = 'none'; // Set to none so clicks pass through pane
     }
 
     return windowRef;

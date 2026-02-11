@@ -1,21 +1,7 @@
-<div class="window-container card shadow"
-     cdkDrag
-     [cdkDragFreeDragPosition]="{x: x, y: y}"
-     (cdkDragStarted)="onDragStart($event)"
-     (cdkDragEnded)="onDragEnd($event)"
-     (mousedown)="onWindowClick()"
-     [style.width.px]="width"
-     [style.height.px]="height"
-     [style.zIndex]="zIndex"
-     [style.--window-width.px]="width"
-     [style.--window-height.px]="height">
-
-  <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white"
-       cdkDragHandle
-       style="cursor: move;">
-    <h6 class="mb-0 user-select-none">{{ title }}</h6>
-    <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="closeWindow()"></button>
-  </div>
+<div class="window-container card shadow" cdkDrag [cdkDragFreeDragPosition]="dragPositionPixels"
+  (cdkDragStarted)="onDragStart($event)" (cdkDragEnded)="onDragEnd($event)" (mousedown)="onWindowClick()"
+  [style.width.vw]="width" [style.height.vh]="height" [style.zIndex]="zIndex" [style.--window-width.vw]="width"
+  [style.--window-height.vh]="height">
 
   <div class="card-body overflow-auto p-0 position-relative">
     <ng-template [cdkPortalOutlet]="contentPortal"></ng-template>
@@ -25,5 +11,10 @@
   <!-- Resize Handles -->
   <div class="resize-handle resize-handle-e" (mousedown)="initResize($event, 'e')"></div>
   <div class="resize-handle resize-handle-s" (mousedown)="initResize($event, 's')"></div>
+  <div class="resize-handle resize-handle-w" (mousedown)="initResize($event, 'w')"></div>
+  <div class="resize-handle resize-handle-n" (mousedown)="initResize($event, 'n')"></div>
   <div class="resize-handle resize-handle-se" (mousedown)="initResize($event, 'se')"></div>
+  <div class="resize-handle resize-handle-nw" (mousedown)="initResize($event, 'nw')"></div>
+  <div class="resize-handle resize-handle-ne" (mousedown)="initResize($event, 'ne')"></div>
+  <div class="resize-handle resize-handle-sw" (mousedown)="initResize($event, 'sw')"></div>
 </div>
