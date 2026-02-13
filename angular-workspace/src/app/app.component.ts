@@ -15,7 +15,6 @@ export class AppComponent {
 
   openChart() {
     this.floatingWindowService.open(ChartComponent, {
-      title: 'Chart Window',
       width: 50,
       height: 40,
       x: 5,
@@ -26,7 +25,6 @@ export class AppComponent {
 
   openForm() {
     this.floatingWindowService.open(FormComponent, {
-      title: 'Form Window',
       width: 40,
       height: 30,
       x: 30,
