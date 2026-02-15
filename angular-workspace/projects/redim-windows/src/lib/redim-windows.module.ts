@@ -5,24 +5,24 @@ import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
 import { RedimWindowsComponent } from './redim-windows.component';
 import { FloatingWindowComponent } from './floating-window/floating-window.component';
-import { CustomScrollbarComponent } from './custom-scrollbar/custom-scrollbar.component';
+import { CustomScrollbarModule } from '@pppicado/custom-scrollbar';
 
 @NgModule({
   declarations: [
     RedimWindowsComponent,
-    FloatingWindowComponent,
-    CustomScrollbarComponent
+    FloatingWindowComponent
   ],
   imports: [
     CommonModule,
     DragDropModule,
     OverlayModule,
-    PortalModule
+    PortalModule,
+    CustomScrollbarModule
   ],
   exports: [
     RedimWindowsComponent,
     FloatingWindowComponent,
-    CustomScrollbarComponent
+    CustomScrollbarModule
   ]
 })
 export class RedimWindowsModule { }

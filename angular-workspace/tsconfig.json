@@ -17,7 +17,14 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "paths": {
-      "redim-windows": [
+      "@pppicado/structexe": [
+        "dist/structexe",
+        "projects/structexe/src"
+      ],
+      "@pppicado/custom-scrollbar": [
+        "dist/custom-scrollbar"
+      ],
+      "@pppicado/redim-windows": [
         "dist/redim-windows",
         "projects/redim-windows/src/public-api"
       ]

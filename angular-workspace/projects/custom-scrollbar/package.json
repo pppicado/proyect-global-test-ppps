@@ -1,24 +1,23 @@
 {
-  "name": "@pppicado/redim-windows",
+  "name": "@pppicado/custom-scrollbar",
   "version": "0.1.0",
-  "description": "Floating, resizable, and draggable windows for Angular",
+  "description": "Custom scrollbar Angular component with drag support via Angular CDK",
   "author": "Pedro Pablo Picado Sánchez",
   "license": "MIT",
   "peerDependencies": {
     "@angular/common": "^16.2.0",
     "@angular/core": "^16.2.0",
-    "@angular/cdk": "^16.2.0",
-    "@pppicado/custom-scrollbar": "^0.1.0"
+    "@angular/cdk": "^16.2.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"
   },
   "keywords": [
     "angular",
-    "floating-window",
-    "draggable",
-    "resizable",
-    "window-manager"
+    "scrollbar",
+    "custom-scrollbar",
+    "drag",
+    "cdk"
   ],
   "sideEffects": false
 }
