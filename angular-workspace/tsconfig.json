@@ -21,8 +21,9 @@
         "dist/structexe",
         "projects/structexe/src"
       ],
-      "@pppicado/custom-scrollbar": [
-        "dist/custom-scrollbar"
+      "@pppicado/virtual-scrollbar": [
+        "dist/virtual-scrollbar",
+        "projects/virtual-scrollbar/src/public-api"
       ],
       "@pppicado/redim-windows": [
         "dist/redim-windows",

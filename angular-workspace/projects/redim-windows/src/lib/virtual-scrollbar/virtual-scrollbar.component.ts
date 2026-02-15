@@ -2,11 +2,11 @@ import { Component, ElementRef, Input, ViewChild, AfterViewInit, OnDestroy, Rend
 import { CdkDragMove, CdkDragStart, CdkDragEnd } from '@angular/cdk/drag-drop';
 
 @Component({
-    selector: 'lib-custom-scrollbar',
-    templateUrl: './custom-scrollbar.component.html',
-    styleUrls: ['./custom-scrollbar.component.css']
+    selector: 'lib-virtual-scrollbar',
+    templateUrl: './virtual-scrollbar.component.html',
+    styleUrls: ['./virtual-scrollbar.component.css']
 })
-export class CustomScrollbarComponent implements AfterViewInit, OnDestroy {
+export class VirtualScrollbarComponent implements AfterViewInit, OnDestroy {
     @Input() scrollIcon: string = '';
     @Input() scrollThumbSize: number = 2;
 
@@ -100,6 +100,17 @@ export class CustomScrollbarComponent implements AfterViewInit, OnDestroy {
         const el = this.scrollContainer.nativeElement;
         const thumbSizeVw = this.scrollThumbSize;
         const thumbSizePx = (thumbSizeVw * window.innerWidth) / 100;
+
+        const dragY = event.pointerPosition.y - el.getBoundingClientRect().top - (thumbSizePx / 2); // Approximation logic needs adjustment relative to free drag position
+
+        // Better approach: use the element's transform or the event distance
+        // But cdkDragFreeDragPosition inputs don't automatically update from the drag.
+        // We rely on the visual position provided by CDK, but we need to calculate the scroll.
+
+        // Actually, cdkDragMoved gives us the pointer position. 
+        // Let's use the 'transform' style or simply calculate based on the constrained axis.
+        // Since we are moving the thumb freely within the container (constrained by boundary), 
+        // we can read the transform or use the event.source.getFreeDragPosition()
 
         const currentPos = event.source.getFreeDragPosition();
         const maxThumbTop = el.clientHeight - thumbSizePx;

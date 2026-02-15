@@ -46,7 +46,7 @@ function autoConstructorClass<T extends object>(instance: T, params: OptionalPar
   return instance
 }
 
-export type _exe_Struct = Data_exe_ | Array_exe_ | Map_exe_ | Set_exe_
+export type _exe_Struct = With_exe_opt<{}>
 
 export type ActionChange = (change: datChangeObj) => void
 export type With_exe_opt<T> =
@@ -64,14 +64,10 @@ export type With_exe_<T> =
 
 export interface _exe_Property_opt { _exe_?: ManagementHierarchicalData; }
 export interface _exe_Property { _exe_: ManagementHierarchicalData; }
-export interface Data_exe_ extends Data_exe_Obj, _exe_Property { }
-export interface Array_exe_ extends Array_exe_Obj, _exe_Property { }
-export interface Map_exe_ extends Map_exe_Obj, _exe_Property { }
-export interface Set_exe_ extends Set_exe_Obj, _exe_Property { }
 
 export enum typeChange { 'create', 'seter', 'change', 'geter', 'delete' }
 export enum stateAmbitReaction { all, local, childens, fathers, pause } // all = local + childens + fathers
-export enum processingType { unset, primitiveData, object, NoObserver, NoMutation, array, map, set, Data_exe_, Array_exe_, Map_exe_, Set_exe_, function }
+export enum processingType { unset, primitiveData, object, NoObserver, NoMutation, array, map, set, function }
 
 /**
  * *************************************************************************** 
@@ -93,7 +89,9 @@ export class _exe_ {
    * @param target Objeto a comprobar.
    * @returns Verdadero si el objeto tiene la propiedad internal_exe_property, falso en caso contrario.
    */
-  static be(target: any) { return internal_exe_property in target }
+  static be(target: any) {
+    return (target != null && typeof target == 'object' && internal_exe_property in target)
+  }
 
 
   static get_exe_(target: any): ManagementHierarchicalData {
@@ -102,18 +100,9 @@ export class _exe_ {
   }
 
   /**
-   * Crea una instancia Data_exe_ a partir de un objeto.
-   * @param importObj Objeto a importar.
-   * @returns Instancia Data_exe_ creada.
-   */
-  static newData_exe_(importObj: Object): Data_exe_ {
-    return new Data_exe_Obj(importObj) as Data_exe_
-  }
-
-  /**
    * *************************************************************************** 
-   * @method newStruct_exe_ Método que crea una instancia de Array_exe_Obj, 
-   * Map_exe_Obj, Set_exe_Obj o Data_exe_Obj dependiendo del tipo de objeto y la retorna como _exe_Struct.
+   * @method newStruct_exe_ Método que crea una instancia de objeto gestionado 
+   * por _exe_ dependiendo del tipo de objeto de importObj y la retorna como _exe_Struct.
    * @param importObj Objeto a importar.
    * @returns {_exe_Struct} Devuelve la instancia creada como _exe_Struct.
    * @throws Error si el tipo de objeto no es compatible.
@@ -372,16 +361,12 @@ export class _exe_ {
     switch (_exe_.gestType(target)) {
       case processingType.object: {
         if (!(property in (target as object))) err = `property ${property} not found in "${target.toString()}"`
-        else value = Object.getOwnPropertyDescriptor(target, property)?.value
+        // else value = Object.getOwnPropertyDescriptor(target, property)?.value
+        else value = (target as object)[property]
         break;
       }
-      case processingType.Data_exe_: {
-        if (!(target.hasOwnProperty(property))) err = `property ${property} not found in "${_exe_.path(target)}"`
-        else value = (target as Data_exe_)[property]
-        break;
-      }
-      case processingType.map:
-      case processingType.Map_exe_: {
+
+      case processingType.map: {
         if ((target as Map<any, any>).has(property)) value = (target as Map<any, any>).get(property)
         else {
           let numProperty = Number(property)
@@ -394,8 +379,7 @@ export class _exe_ {
         }
         break;
       }
-      case processingType.set:
-      case processingType.Set_exe_: {
+      case processingType.set: {
         if ((target as Set<any>).has(property)) value = property
         else {
           let numProperty = Number(property)
@@ -470,7 +454,7 @@ export class _exe_ {
       ok = true
       returnValue = cursor
 
-      while (ok && propertyes.length) {
+      while (ok && propertyes.length && propertyes[0] != '') {
 
         if (_exe_.be(returnValue)) {
           _exe_Path = propertyes.join('|')
@@ -534,19 +518,15 @@ export class _exe_ {
     let arrayKeyValues: Array<[value: any, realKey: any, stringKey: string]> = []
     switch (_exe_.gestType(target)) {
       case processingType.object:
-      case processingType.Data_exe_:
         arrayKeyValues = Object.entries(target).map((item) => [item[1], item[0], item[0].toString()])
         break;
       case processingType.map:
-      case processingType.Map_exe_:
         arrayKeyValues = Array.from((target as Map<any, any>).entries()).map((item) => [item[1], item[0], item[0].toString()])
         break;
       case processingType.set:
-      case processingType.Set_exe_:
         arrayKeyValues = Array.from((target as Set<any>).values()).map((item, index) => [item, item, index.toString()])
         break;
       case processingType.array:
-      case processingType.Array_exe_:
         arrayKeyValues = (target as any[]).map((item, index) => [item, index, index.toString()])
         break;
       default:
@@ -572,7 +552,7 @@ export class _exe_ {
     let target: any = origen
     let descriptor: PropertyDescriptor
     switch (_exe_.gestType(origen)) {
-      case processingType.Data_exe_: {
+      case processingType.object: {
         target = new Object()
         _exe_.forEach(origen, (value, realKey) => {
           descriptor = { configurable: true, enumerable: true, value: _exe_.export(value), writable: true, }
@@ -580,30 +560,24 @@ export class _exe_ {
         })
         break
       }
-      case processingType.Map_exe_: {
+      case processingType.map: {
         target = new Map<any, any>()
         _exe_.forEach(origen, (value, realKey) => { target.set(realKey, _exe_.export(value)) })
         break
       }
-      case processingType.Set_exe_: {
+      case processingType.set: {
         target = new Set<any>()
         _exe_.forEach(origen, (value) => { target.add(_exe_.export(value)) })
         break
       }
-      case processingType.Array_exe_: {
+      case processingType.array: {
         target = new Array<any>()
         _exe_.forEach(origen, (value, realKey) => { target[realKey] = _exe_.export(value) })
         break
       }
-      case processingType.object:
-      case processingType.map:
-      case processingType.set:
-      case processingType.array: {
+      default:
         if (_exe_.be(origen))
           target = (origen._exe_ as ManagementHierarchicalData).structObj
-        break
-      }
-      default:
         // processingType.NoMutation, processingType.primitiveData, processingType.NoObserver, processingType.function, processingType.unset ...          
         break;
     }
@@ -678,8 +652,6 @@ export class _exe_ {
         case "DataView": case "ArrayBufferView": case "Promise": case "GeneratorFunction": return processingType.primitiveData;
         case "Subject": case "BehaviorSubject": case "Observable": case "Subscription": return processingType.primitiveData;
         case "Set": return processingType.set; case "Map": return processingType.map; case "Array": return processingType.array;
-        case "Data_exe_Obj": return processingType.Data_exe_;
-        case "Set_exe_Obj": return processingType.Set_exe_; case "Map_exe_Obj": return processingType.Map_exe_; case "Array_exe_Obj": return processingType.Array_exe_;
         default: {
           if (Array.isArray(valueTest)) return processingType.array
           else if (valueTest instanceof Map) return processingType.map
@@ -1301,8 +1273,8 @@ export class ManagementReactionsObj {
     if (subBuffer) {
       Object.keys(this.bufferReactions.reactions).forEach((key) => {
         let cambio = this.bufferReactions.reactions[Number(key)]
-        subBuffer.bufferReactions.index[cambio.hito][cambio.ambito][cambio.ruta] = Number(key)
-        subBuffer.bufferReactions.reactions[Number(key)] = cambio
+        subBuffer!.bufferReactions.index[cambio.hito][cambio.ambito][cambio.ruta] = Number(key)
+        subBuffer!.bufferReactions.reactions[Number(key)] = cambio
       })
       this.bufferReactions.index = subBuffer.bufferReactions.index
       this.bufferReactions.reactions = subBuffer.bufferReactions.reactions

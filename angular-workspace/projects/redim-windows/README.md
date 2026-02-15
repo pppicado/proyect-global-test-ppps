@@ -128,14 +128,14 @@ The window container automatically sets CSS variables `--window-width` and `--wi
 | `scrollIcon` | `string` | `''` | URL for the custom scrollbar thumb image. |
 | `scrollThumbSize` | `number` | `2` | Size of the scrollbar thumb in vw. |
 
-### `CustomScrollbarComponent`
+### `VirtualScrollbarComponent`
 
 You can use the custom scrollbar independently to wrap any content.
 
 ```html
-<lib-custom-scrollbar [scrollIcon]="'assets/icon.png'" [scrollThumbSize]="2">
+<lib-virtual-scrollbar [scrollIcon]="'assets/icon.png'" [scrollThumbSize]="2">
   <div style="height: 200vh">Long content...</div>
-</lib-custom-scrollbar>
+</lib-virtual-scrollbar>
 ```
 
 | Input | Type | Default | Description |

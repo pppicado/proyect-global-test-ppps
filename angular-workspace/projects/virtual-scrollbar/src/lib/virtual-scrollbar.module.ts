@@ -1,18 +1,18 @@
 import { NgModule } from '@angular/core';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { CustomScrollbarComponent } from './custom-scrollbar.component';
+import { VirtualScrollbarComponent } from './virtual-scrollbar.component';
 
 @NgModule({
   declarations: [
-    CustomScrollbarComponent
+    VirtualScrollbarComponent
   ],
   imports: [
     CommonModule,
     DragDropModule
   ],
   exports: [
-    CustomScrollbarComponent
+    VirtualScrollbarComponent
   ]
 })
-export class CustomScrollbarModule { }
+export class VirtualScrollbarModule { }

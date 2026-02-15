@@ -1,5 +1,5 @@
 import { Component, Inject, Optional } from '@angular/core';
-import { WINDOW_DATA } from 'redim-windows';
+import { WINDOW_DATA } from '@pppicado/redim-windows';
 
 @Component({
   selector: 'app-chart',
@@ -7,5 +7,5 @@ import { WINDOW_DATA } from 'redim-windows';
   styleUrls: ['./chart.component.css']
 })
 export class ChartComponent {
-  constructor(@Optional() @Inject(WINDOW_DATA) public data: any) {}
+  constructor(@Optional() @Inject(WINDOW_DATA) public data: any) { }
 }

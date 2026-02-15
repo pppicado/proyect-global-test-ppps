@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { RedimWindowsModule } from 'redim-windows';
+import { RedimWindowsModule } from '@pppicado/redim-windows';
 
 import { AppComponent } from './app.component';
 import { ChartComponent } from './chart/chart.component';

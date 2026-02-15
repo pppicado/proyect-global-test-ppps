@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "build:structexe": "tsc -p projects/structexe/tsconfig.esm.json && tsc -p projects/structexe/tsconfig.cjs.json && tsc -p projects/structexe/tsconfig.types.json",
-    "build:scrollbar": "ng build custom-scrollbar",
+    "build:scrollbar": "ng build virtual-scrollbar",
     "build:windows": "ng build redim-windows",
     "build:all": "npm run build:structexe && npm run build:scrollbar && npm run build:windows"
   },

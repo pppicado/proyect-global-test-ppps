@@ -1,7 +1,7 @@
 {
-  "name": "@pppicado/custom-scrollbar",
+  "name": "@pppicado/virtual-scrollbar",
   "version": "0.1.0",
-  "description": "Custom scrollbar Angular component with drag support via Angular CDK",
+  "description": "Virtual scrollbar Angular component with drag support via Angular CDK",
   "author": "Pedro Pablo Picado Sánchez",
   "license": "MIT",
   "peerDependencies": {
@@ -15,7 +15,7 @@
   "keywords": [
     "angular",
     "scrollbar",
-    "custom-scrollbar",
+    "virtual-scrollbar",
     "drag",
     "cdk"
   ],
