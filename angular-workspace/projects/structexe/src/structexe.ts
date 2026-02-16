@@ -62,6 +62,8 @@ export type With_exe_<T> =
   T extends object ? { [K in keyof T]: With_exe_<T[K]> } & _exe_Property
   : T;
 
+export type Type_exe_<T> = With_exe_<T> | With_exe_opt<T>
+
 export interface _exe_Property_opt { _exe_?: ManagementHierarchicalData; }
 export interface _exe_Property { _exe_: ManagementHierarchicalData; }
 
@@ -107,14 +109,20 @@ export class _exe_ {
    * @returns {_exe_Struct} Devuelve la instancia creada como _exe_Struct.
    * @throws Error si el tipo de objeto no es compatible.
    */
-  static newStruct_exe_<T extends object>(importObj: T): _exe_Struct {
-
-    if (importObj instanceof Array) return new Array_exe_Obj(importObj) as _exe_Struct
-    else if (importObj instanceof Map) return new Map_exe_Obj(importObj) as _exe_Struct
-    else if (importObj instanceof Set) return new Set_exe_Obj(importObj) as _exe_Struct
-    else if (importObj instanceof Object) return new Data_exe_Obj(importObj) as _exe_Struct
-    else throw new Error("El tipo de objeto no es compatible con la estructura jerárquica de datos.")
+  static newStruct_exe_<T extends object>(importObj: T, fatherStruct?: Type_exe_<any>, fatherProperty?: string): Type_exe_<T> {
+    let typeStruct = _exe_.gestType(importObj)
+    let newStruct: any = undefined
+    switch (typeStruct) {
+      case processingType.object: newStruct = {}; break;
+      case processingType.array: newStruct = []; break;
+      case processingType.map: newStruct = new Map(); break;
+      case processingType.set: newStruct = new Set(); break;
+      default:
+        throw new Error("El tipo de objeto no es compatible con la estructura jerárquica de datos.")
+    }
+    return _exe_.newProxy(importObj, typeStruct, fatherStruct, fatherProperty)
   }
+
   /**
    * Crea una estructura _exe_Struct y fuerza el tipado With_exe_.
    * @param importObj Objeto a importar.
@@ -139,10 +147,21 @@ export class _exe_ {
    * @returns {Data_exe_} debuelve el objeto contenedor de la instancia. 
    */
   static free<T>(target: T, property: string = ''): T {
-    if ((typeof target).toString() == "Data_exe_") delete (target as unknown as Data_exe_)[property]
-    else if ((typeof target).toString() == "Array_exe_") delete (target as unknown as Array_exe_)[Number(property)]
-    else if ((typeof target).toString() == "Map_exe_") (target as unknown as Map_exe_).delete(property)
-    else if ((typeof target).toString() == "Set_exe_") (target as unknown as Set_exe_).delete(property)
+    if (_exe_.be(target)) {
+      switch (_exe_.gestType(target)) {
+        case processingType.object:
+          delete (target as unknown as Object)[property]
+          break;
+        case processingType.array:
+          delete (target as unknown as Array<any>)[Number(property)]
+          break;
+        case processingType.map:
+          (target as unknown as Map<any, any>).delete(property)
+          break;
+        case processingType.set:
+          (target as unknown as Set<any>).delete((target as unknown as Set<any>).values[Number(property)])
+      }
+    }
     return target
   }
 
@@ -215,16 +234,16 @@ export class _exe_ {
     if (transformValue && muting) {
       switch (typeValue) {
         case processingType.array:
-          transformedValue = new Array_exe_Obj(value as any[], _exe_Struct, property)
+          transformedValue = value
           break
         case processingType.map:
-          transformedValue = new Map_exe_Obj(value as Map<any, any>, _exe_Struct, property)
+          transformedValue = value
           break
         case processingType.set:
-          transformedValue = new Set_exe_Obj(value as Set<any>, _exe_Struct, property)
+          transformedValue = value
           break
         case processingType.object:
-          transformedValue = new Data_exe_Obj(value as object, _exe_Struct, property)
+          transformedValue = value
           break
         default:
           transformedValue = value
@@ -233,7 +252,7 @@ export class _exe_ {
 
     // Handle property creation and assignment based on target type
     switch (typeTarget) {
-      case processingType.Array_exe_: {
+      case processingType.array: {
         while ((target as any[]).length < (Number(property) + 1)) {
           (target as any[]).push(undefined)
           thisArg._exe_.rootManagement.callReact(new datChangeObj({
@@ -244,13 +263,13 @@ export class _exe_ {
             datoActual: undefined
           }))
         }
-        (target as Array_exe_)[Number(property)] = transformedValue
+        (target as Array<any>)[Number(property)] = transformedValue
         path += '[' + property + ']'
         break
       }
-      case processingType.Map_exe_: {
-        if (!(target as Map_exe_).has(property)) {
-          (target as Map_exe_).set(property, undefined)
+      case processingType.map: {
+        if (!(target as Map<string, any>).has(property)) {
+          (target as Map<string, any>).set(property, undefined)
           propertyCreated = true
           thisArg._exe_.rootManagement.callReact(new datChangeObj({
             ruta: path + '[' + property + ']',
@@ -260,14 +279,14 @@ export class _exe_ {
             datoActual: undefined
           }))
         }
-        (target as Map_exe_).set(property, transformedValue)
+        (target as Map<string, any>).set(property, transformedValue)
         path += '[' + property + ']'
         break
       }
-      case processingType.Set_exe_: {
-        if (!(target as Set_exe_).has(transformedValue)) {
-          property = (target as Set_exe_).size.toString();
-          (target as Set_exe_).add(transformedValue)
+      case processingType.set: {
+        if (!(target as Set<any>).has(transformedValue)) {
+          property = (target as Set<any>).size.toString();
+          (target as Set<any>).add(transformedValue)
           propertyCreated = true
           thisArg._exe_.rootManagement.callReact(new datChangeObj({
             ruta: path + '[' + property + ']',
@@ -277,16 +296,16 @@ export class _exe_ {
             datoActual: undefined
           }))
         } else {
-          (target as Set_exe_).forEach((item: any, index: number) => {
+          (target as Set<any>).forEach((item: any, index: number) => {
             if (item === transformedValue) property = index.toString()
           })
         }
         path += '[' + property + ']'
         break
       }
-      case processingType.Data_exe_: {
-        if (!(property in (target as Data_exe_))) {
-          (target as Data_exe_)[property] = undefined
+      case processingType.object: {
+        if (!(property in (target as Object))) {
+          (target as Object)[property] = undefined
           propertyCreated = true
           thisArg._exe_.rootManagement.callReact(new datChangeObj({
             ruta: path + '|' + property,
@@ -296,7 +315,7 @@ export class _exe_ {
             datoActual: undefined
           }))
         }
-        (target as Data_exe_)[property] = transformedValue
+        (target as Object)[property] = transformedValue
         path += '|' + property
         break
       }
@@ -676,13 +695,13 @@ export class _exe_ {
    * @param fatherProperty Propiedad padre.
    * @returns {_exe_Struct} debuelve la instancia proxy. 
    */
-  static proxyStruct(thisArg: any, type: processingType, fatherStruct?: _exe_Struct, fatherProperty?: string): _exe_Struct {
+  static newProxy<T>(thisArg: T, type: processingType, fatherStruct?: Type_exe_<any>, fatherProperty?: string): Type_exe_<T> {
     let managementHierarchicalData = new ManagementHierarchicalDataObj() as ManagementHierarchicalData
     let typeProcessing = type
     managementHierarchicalData.structObj = thisArg
     switch (type) {
-      case processingType.Array_exe_:
-      case processingType.Data_exe_: {
+      case processingType.array:
+      case processingType.object: {
         managementHierarchicalData.proxyObj = new Proxy(thisArg, {
           defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
             managementHierarchicalData.set(property.toString(), descriptor.value)
@@ -702,7 +721,7 @@ export class _exe_ {
               let value = Reflect.get(target, property, receiver)
               if (managementHierarchicalData.rootManagement.observingGets) {
                 managementHierarchicalData.rootManagement.callReact(new datChangeObj({
-                  ruta: managementHierarchicalData.path + (typeProcessing == processingType.Array_exe_) ? '[' + property.toString() + ']' : '|' + property.toString(),
+                  ruta: managementHierarchicalData.path + (typeProcessing == processingType.array) ? '[' + property.toString() + ']' : '|' + property.toString(),
                   hito: typeChange.geter,
                   ambito: stateAmbitReaction.local,
                   datoNuevo: value,
@@ -720,8 +739,8 @@ export class _exe_ {
         } as ProxyHandler<Object>) as _exe_Struct
         break
       }
-      case processingType.Set_exe_:
-      case processingType.Map_exe_: {
+      case processingType.set:
+      case processingType.map: {
         managementHierarchicalData.proxyObj = new Proxy(thisArg, {
           defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
@@ -874,81 +893,14 @@ export class _exe_ {
         break
     }
     if (fatherStruct && fatherProperty) {
-      if (fatherStruct.constructor.name in ['Array_exe_', 'Set_exe_', 'Map_exe_', 'Array', 'Set', 'Map'])
+      if (_exe_.gestType(fatherStruct) in [processingType.array, processingType.set, processingType.map])
         fatherProperty = '[' + fatherProperty + ']'
       else
         fatherProperty = '|' + fatherProperty
       managementHierarchicalData.path = _exe_.path(fatherStruct) + fatherProperty
       managementHierarchicalData.rootManagement = _exe_.get_exe_(fatherStruct).rootManagement
     } else managementHierarchicalData.rootManagement = new ManagementReactionsObj(managementHierarchicalData.proxyObj)
-    return managementHierarchicalData.proxyObj as _exe_Struct
-  }
-}
-
-/**
- * ***************************************************************************
- *  Clase para la estructura de datos jerárquica con eventos de cambio profundo.
- *  Objects are used as a store for data structures with deep change events.
- *  Instances of this Objects parse structures and host them as instances of this class so that the root object receives change events from its children.
- *  @see Datos Is the interface of this class.
- */
-class Data_exe_Obj {
-  /**
-   * Crea una estructura Data_exe_ y enlaza su nodo padre.
-   * @param importObj Objeto a importar.
-   * @param father Estructura padre.
-   * @param fatherProperty Propiedad en el padre.
-   */
-  constructor(importObj?: object, father?: _exe_Struct, fatherProperty?: string) {
-    let thisObj = _exe_.proxyStruct(this, processingType.Data_exe_, father, fatherProperty) as Data_exe_
-    _exe_.set(thisObj, '', importObj)
-    return thisObj
-  }
-  [index: string | symbol]: any,
-}
-
-class Array_exe_Obj extends Array<any> {
-  /**
-   * Crea una estructura Array_exe_ y enlaza su nodo padre.
-   * @param importObj Objeto a importar.
-   * @param father Estructura padre.
-   * @param fatherProperty Propiedad en el padre.
-   */
-  constructor(importObj?: object, father?: _exe_Struct, fatherProperty?: string) {
-    super()
-    let thisObj = _exe_.proxyStruct(this, processingType.Array_exe_, father, fatherProperty) as Array_exe_
-    _exe_.set(thisObj, '', importObj)
-    return thisObj
-  }
-}
-
-class Map_exe_Obj extends Map<any, any> {
-  /**
-   * Crea una estructura Map_exe_ y enlaza su nodo padre.
-   * @param importObj Objeto a importar.
-   * @param father Estructura padre.
-   * @param fatherProperty Propiedad en el padre.
-   */
-  constructor(importObj?: object, father?: _exe_Struct, fatherProperty?: string) {
-    super()
-    let thisObj = _exe_.proxyStruct(this, processingType.Map_exe_, father, fatherProperty) as Map_exe_
-    _exe_.set(thisObj, '', importObj)
-    return thisObj
-  }
-}
-
-class Set_exe_Obj extends Set<any> {
-  /**
-   * Crea una estructura Set_exe_ y enlaza su nodo padre.
-   * @param importObj Objeto a importar.
-   * @param father Estructura padre.
-   * @param fatherProperty Propiedad en el padre.
-   */
-  constructor(importObj?: object, father?: _exe_Struct, fatherProperty?: string) {
-    super()
-    let thisObj = _exe_.proxyStruct(this, processingType.Set_exe_, father, fatherProperty) as Set_exe_
-    _exe_.set(thisObj, '', importObj)
-    return thisObj
+    return managementHierarchicalData.proxyObj
   }
 }
 
