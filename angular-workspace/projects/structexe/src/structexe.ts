@@ -11,65 +11,35 @@
 ** By Pedro Pablo Picado Sánchez
 */
 
-// El tipo params<T> tiene que representar un objeto con las propiedades del tipo T que sean opcionales pero no permitir propiedades que no esten el T , T tiene que ser una clase
-
-// export type Params<T extends object> = {
-//   [K in keyof T]?: T[K];
-// } & { [K in keyof any]: K extends keyof T ? T[K] : never };
-
-// export function autoConstructorClass<T>(thisArg:T,params:Params<T>):T{
-
+// config
 const internal_exe_property = Symbol('internal_exe_property')
+const string_exe_property = '_exe_'
 
-type OptionalParams<T> = Partial<T> | undefined;
-function autoConstructorClass<T extends object>(instance: T, params: OptionalParams<T>): T {
-  if (params != undefined) {
-    Object.keys(params).forEach((prop) => {
-      let propertyDescriptor = Object.getOwnPropertyDescriptor(instance, prop)
-      let valor = Object.getOwnPropertyDescriptor(params, prop)?.value
-      if (valor == undefined) valor = Object.getOwnPropertyDescriptor(params, '_' + prop)?.value
 
-      if (propertyDescriptor) {
-        if (!propertyDescriptor.hasOwnProperty('value')) {
-          propertyDescriptor = Object.getOwnPropertyDescriptor(instance, '_' + prop)
-          if (propertyDescriptor) {
-            prop = '_' + prop
-          } else {
-            propertyDescriptor = { configurable: true, enumerable: true, value: undefined } as PropertyDescriptor
-          }
-        }
-        propertyDescriptor.value = valor
-        Object.defineProperty(instance, prop, propertyDescriptor)
-      }
-    })
-  }
-  return instance
-}
+export type TypeStruct_exe_<T> =
+  T extends Map<infer K, infer V> ? Map<K, TypeStruct_exe_<V>> & _exe_Property_fix :
+  T extends Set<infer U> ? Set<TypeStruct_exe_<U>> & _exe_Property_fix :
+  T extends Array<infer E> ? Array<TypeStruct_exe_<E>> & _exe_Property_fix :
+  T extends object ? { [K in keyof T]: TypeStruct_exe_<T[K]> } & _exe_Property_fix
+  : T & _exe_Property_opt;
 
-export type _exe_Struct = With_exe_opt<{}>
+export interface _exe_Property_opt extends Partial<_exe_Property_mandatory> { }
+export interface _exe_Property_fix extends Partial<_exe_Property_index> { }
+export interface _exe_Property_mandatory { _exe_: ManagementHierarchicalData; }
+export interface _exe_Property_index { "_exe_": ManagementHierarchicalData; }
+
+var descKK = { value: { pp: 'pp' } }
+var kk = {} as TypeStruct_exe_<typeof descKK>
+kk._exe_.export()
+kk.value._exe_.export()
+kk._exe_.export()
+kk.value.pp._exe_.export()
 
 export type ActionChange = (change: datChangeObj) => void
-export type With_exe_opt<T> =
-  T extends Map<infer K, infer V> ? Map<K, With_exe_opt<V>> & _exe_Property_opt :
-  T extends Set<infer U> ? Set<With_exe_opt<U>> & _exe_Property_opt :
-  T extends Array<infer E> ? Array<With_exe_opt<E>> & _exe_Property_opt :
-  T extends object ? { [K in keyof T]: With_exe_opt<T[K]> } & _exe_Property_opt
-  : T;
-export type With_exe_<T> =
-  T extends Map<infer K, infer V> ? Map<K, With_exe_<V>> & _exe_Property :
-  T extends Set<infer U> ? Set<With_exe_<U>> & _exe_Property :
-  T extends Array<infer E> ? Array<With_exe_<E>> & _exe_Property :
-  T extends object ? { [K in keyof T]: With_exe_<T[K]> } & _exe_Property
-  : T;
-
-export type Type_exe_<T> = With_exe_<T> | With_exe_opt<T>
-
-export interface _exe_Property_opt { _exe_?: ManagementHierarchicalData; }
-export interface _exe_Property { _exe_: ManagementHierarchicalData; }
-
+export type OptionalParams<T> = Partial<T> | undefined;
 export enum typeChange { 'create', 'seter', 'change', 'geter', 'delete' }
 export enum stateAmbitReaction { all, local, childens, fathers, pause } // all = local + childens + fathers
-export enum processingType { unset, primitiveData, object, NoObserver, NoMutation, array, map, set, function }
+export enum processingType { unset, basicData, primitiveData, object, observ, noObserv, noMutation, array, map, set, function }
 
 /**
  * *************************************************************************** 
@@ -104,12 +74,12 @@ export class _exe_ {
   /**
    * *************************************************************************** 
    * @method newStruct_exe_ Método que crea una instancia de objeto gestionado 
-   * por _exe_ dependiendo del tipo de objeto de importObj y la retorna como _exe_Struct.
+   * por _exe_ dependiendo del tipo de objeto de importObj y la retorna como TypeStruct_exe_.
    * @param importObj Objeto a importar.
-   * @returns {_exe_Struct} Devuelve la instancia creada como _exe_Struct.
+   * @returns {TypeStruct_exe_} Devuelve la instancia creada como TypeStruct_exe_.
    * @throws Error si el tipo de objeto no es compatible.
    */
-  static newStruct_exe_<T extends object>(importObj: T, fatherStruct?: Type_exe_<any>, fatherProperty?: string): Type_exe_<T> {
+  static newStruct_exe_<T extends object>(importObj: T, fatherStruct?: TypeStruct_exe_<any>, fatherProperty?: string): TypeStruct_exe_<T> {
     let typeStruct = _exe_.gestType(importObj)
     let newStruct: any = undefined
     switch (typeStruct) {
@@ -121,23 +91,6 @@ export class _exe_ {
         throw new Error("El tipo de objeto no es compatible con la estructura jerárquica de datos.")
     }
     return _exe_.newProxy(importObj, typeStruct, fatherStruct, fatherProperty)
-  }
-
-  /**
-   * Crea una estructura _exe_Struct y fuerza el tipado With_exe_.
-   * @param importObj Objeto a importar.
-   * @returns Instancia creada con el tipado With_exe_.
-   */
-  static newStruct_exe_fix<T extends object>(importObj: T): With_exe_<T> {
-    return (_exe_.newStruct_exe_(importObj) as unknown) as With_exe_<T>
-  }
-  /**
-   * Crea una estructura _exe_Struct con tipado opcional de la propiedad _exe_.
-   * @param importObj Objeto a importar.
-   * @returns Instancia creada con el tipado With_exe_opt.
-   */
-  static newStruct_exe_opt<T extends object>(importObj: T): With_exe_opt<T> {
-    return (_exe_.newStruct_exe_(importObj) as unknown) as With_exe_opt<T>
   }
 
   /**
@@ -173,26 +126,26 @@ export class _exe_ {
    * @param value Objeto o valor a asignar
    * @param oval Valor de la propiedad que asumirá como Undefined , asignando value a la propiedad como si no estubiese definida.
    * @param muting Indica si se mutará el destino o no.
-   * @returns {_exe_Struct} debuelve el objeto contenedor de la instancia. 
+   * @returns {TypeStruct_exe_} debuelve el objeto contenedor de la instancia. 
    * @see define Este método utiliza el metodo define en caso de definir la propiedad     
    */
-  static setIfn_<T>(target: T, property: string, value?: any, oval: any = undefined, muting?: boolean): With_exe_<T> {
+  static setIfn_<T>(target: T, property: string, value?: any, oval: any = undefined, muting?: boolean): TypeStruct_exe_<T> {
     let actVal = _exe_.getByStr(target, property)
     if (actVal == undefined || actVal.toString() != oval.toString())
       _exe_.set(target, property, value, muting)
-    return (target as unknown as With_exe_<T>)
+    return (target as unknown as TypeStruct_exe_<T>)
   }
 
   /**
-   * @method ghostSet (USO INTERNO) Asigna un valor a una propiedad de una instancia de _exe_Struct sin lanzar reacciones.
-   * @param thisArg Instancia de _exe_Struct.
+   * @method ghostSet (USO INTERNO) Asigna un valor a una propiedad de una instancia de TypeStruct_exe_ sin lanzar reacciones.
+   * @param thisArg Instancia de TypeStruct_exe_.
    * @param property property solo podrá tener nombres de las propiedades de thisArg  
    * @param value Valor a asignar.
    * @param muting Indica si se mutará el destino o no.
-   * @returns {With_exe_<T>} Devuelve la instancia con el valor asignado.
+   * @returns {TypeStruct_exe_<T>} Devuelve la instancia con el valor asignado.
    */
-  static ghostSet<T>(thisArg: any, property: string, value: T, muting?: boolean): With_exe_<T> {
-    let returValue!: With_exe_<T>
+  static ghostSet<T>(thisArg: any, property: string, value: T, muting?: boolean): TypeStruct_exe_<T> {
+    let returValue!: TypeStruct_exe_<T>
     let manage = _exe_.get_exe_(thisArg).rootManagement
     let manageBufferState = manage.getBuffer()
     let subBufferId: number = -1
@@ -208,134 +161,142 @@ export class _exe_ {
 
   /**
    * *************************************************************************** 
-   * @method setProperty (USO INTERNO) Asigna un valor a una propiedad de una instancia de _exe_Struct.
-   * @param thisArg Instancia de _exe_Struct.
+   * @method setProperty (USO INTERNO) Asigna un valor a una propiedad de una instancia de TypeStruct_exe_.
+   * @param thisArg Instancia de TypeStruct_exe_.
    * @param property property solo podrá tener nombres de las propiedades de thisArg  
    * @param value Valor a asignar.
    * @param muting Indica si se mutará el destino o no.
    * @param transformValue Indica si se transformará el valor al tipo de estructura de destino si existe
-   * @returns {With_exe_<T>} Devuelve la instancia con el valor asignado.
+   * @returns {TypeStruct_exe_<T>} Devuelve la instancia con el valor asignado.
    */
 
-  static setProperty_strict<T>(thisArg: any, property: string, value: T, muting: boolean, transformValue: boolean, _exe_Path: string, _exe_Struct: _exe_Struct): With_exe_<T> {
+  static setProperty_strict<T>(thisArg: any, property: string, value: T, muting: boolean, transformValue: boolean, _exe_Path: string, TypeStruct_exe_: TypeStruct_exe_<any>): TypeStruct_exe_<T> {
     let typeValue!: processingType
     let typeTarget!: processingType
-    let path = _exe_.path(_exe_Struct)
+    let path = _exe_.path(TypeStruct_exe_)
     let oldValue = _exe_.export(thisArg, property)
     let target = _exe_.getByStr(thisArg, property)
     let transformedValue: any = value
     let propertyCreated = false
 
-    muting = muting || _exe_.get_exe_(_exe_Struct).mutating
-    typeValue = (muting) ? _exe_.gestType(value) : processingType.NoMutation
+    muting = muting || _exe_.get_exe_(TypeStruct_exe_).mutating
+
+    typeValue = (muting) ? _exe_.gestType(value) : processingType.noMutation
     typeTarget = _exe_.gestType(target)
 
     // Transform value to _exe_ structure if transformValue is enabled and muting is enabled
     if (transformValue && muting) {
-      switch (typeValue) {
-        case processingType.array:
-          transformedValue = value
+
+      //         switch (typeValue) {
+      //     case processingType.array:
+      //       transformedValue = value
+      //       break
+      //     case processingType.map:
+      //       transformedValue = value
+      //       break
+      //     case processingType.set:
+      //       transformedValue = value
+      //       break
+      //     case processingType.object:
+      //       transformedValue = value
+      //       break
+      //     default:
+      //       transformedValue = value
+      //   }
+      // }
+
+      switch (typeTarget) {
+        case processingType.unset: {
+
+          break;
+
+        }
+
+        case processingType.array: {
+          while ((target as any[]).length < (Number(property) + 1)) {
+            (target as any[]).push(undefined)
+            thisArg._exe_.rootManagement.callReact(new datChangeObj({
+              ruta: path + '[' + ((target as any[]).length - 1) + ']',
+              hito: typeChange.create,
+              ambito: stateAmbitReaction.local,
+              datoNuevo: undefined,
+              datoActual: undefined
+            }))
+          }
+          (target as Array<any>)[Number(property)] = transformedValue
+          path += '[' + property + ']'
           break
-        case processingType.map:
-          transformedValue = value
+        }
+        case processingType.map: {
+          if (!(target as Map<string, any>).has(property)) {
+            (target as Map<string, any>).set(property, undefined)
+            propertyCreated = true
+            thisArg._exe_.rootManagement.callReact(new datChangeObj({
+              ruta: path + '[' + property + ']',
+              hito: typeChange.create,
+              ambito: stateAmbitReaction.local,
+              datoNuevo: undefined,
+              datoActual: undefined
+            }))
+          }
+          (target as Map<string, any>).set(property, transformedValue)
+          path += '[' + property + ']'
           break
-        case processingType.set:
-          transformedValue = value
+        }
+        case processingType.set: {
+          if (!(target as Set<any>).has(transformedValue)) {
+            property = (target as Set<any>).size.toString();
+            (target as Set<any>).add(transformedValue)
+            propertyCreated = true
+            thisArg._exe_.rootManagement.callReact(new datChangeObj({
+              ruta: path + '[' + property + ']',
+              hito: typeChange.create,
+              ambito: stateAmbitReaction.local,
+              datoNuevo: transformedValue,
+              datoActual: undefined
+            }))
+          } else {
+            (target as Set<any>).forEach((item: any, index: number) => {
+              if (item === transformedValue) property = index.toString()
+            })
+          }
+          path += '[' + property + ']'
           break
-        case processingType.object:
-          transformedValue = value
+        }
+        case processingType.object: {
+          if (!(property in (target as Object))) {
+            (target as Object)[property] = undefined
+            propertyCreated = true
+            thisArg._exe_.rootManagement.callReact(new datChangeObj({
+              ruta: path + '|' + property,
+              hito: typeChange.create,
+              ambito: stateAmbitReaction.local,
+              datoNuevo: undefined,
+              datoActual: undefined
+            }))
+          }
+          (target as Object)[property] = transformedValue
+          path += '|' + property
           break
-        default:
-          transformedValue = value
+        }
+        default: {
+          // For primitive targets or unknown types, assign directly to thisArg
+          (thisArg as any)[property] = transformedValue
+          path += '|' + property
+        }
       }
+
+      // Trigger set reaction
+      thisArg._exe_.rootManagement.callReact(new datChangeObj({
+        ruta: path,
+        hito: typeChange.seter,
+        ambito: stateAmbitReaction.local,
+        datoNuevo: transformedValue,
+        datoActual: oldValue
+      }))
+
+      return transformedValue as TypeStruct_exe_<T>
     }
-
-    // Handle property creation and assignment based on target type
-    switch (typeTarget) {
-      case processingType.array: {
-        while ((target as any[]).length < (Number(property) + 1)) {
-          (target as any[]).push(undefined)
-          thisArg._exe_.rootManagement.callReact(new datChangeObj({
-            ruta: path + '[' + ((target as any[]).length - 1) + ']',
-            hito: typeChange.create,
-            ambito: stateAmbitReaction.local,
-            datoNuevo: undefined,
-            datoActual: undefined
-          }))
-        }
-        (target as Array<any>)[Number(property)] = transformedValue
-        path += '[' + property + ']'
-        break
-      }
-      case processingType.map: {
-        if (!(target as Map<string, any>).has(property)) {
-          (target as Map<string, any>).set(property, undefined)
-          propertyCreated = true
-          thisArg._exe_.rootManagement.callReact(new datChangeObj({
-            ruta: path + '[' + property + ']',
-            hito: typeChange.create,
-            ambito: stateAmbitReaction.local,
-            datoNuevo: undefined,
-            datoActual: undefined
-          }))
-        }
-        (target as Map<string, any>).set(property, transformedValue)
-        path += '[' + property + ']'
-        break
-      }
-      case processingType.set: {
-        if (!(target as Set<any>).has(transformedValue)) {
-          property = (target as Set<any>).size.toString();
-          (target as Set<any>).add(transformedValue)
-          propertyCreated = true
-          thisArg._exe_.rootManagement.callReact(new datChangeObj({
-            ruta: path + '[' + property + ']',
-            hito: typeChange.create,
-            ambito: stateAmbitReaction.local,
-            datoNuevo: transformedValue,
-            datoActual: undefined
-          }))
-        } else {
-          (target as Set<any>).forEach((item: any, index: number) => {
-            if (item === transformedValue) property = index.toString()
-          })
-        }
-        path += '[' + property + ']'
-        break
-      }
-      case processingType.object: {
-        if (!(property in (target as Object))) {
-          (target as Object)[property] = undefined
-          propertyCreated = true
-          thisArg._exe_.rootManagement.callReact(new datChangeObj({
-            ruta: path + '|' + property,
-            hito: typeChange.create,
-            ambito: stateAmbitReaction.local,
-            datoNuevo: undefined,
-            datoActual: undefined
-          }))
-        }
-        (target as Object)[property] = transformedValue
-        path += '|' + property
-        break
-      }
-      default: {
-        // For primitive targets or unknown types, assign directly to thisArg
-        (thisArg as any)[property] = transformedValue
-        path += '|' + property
-      }
-    }
-
-    // Trigger set reaction
-    thisArg._exe_.rootManagement.callReact(new datChangeObj({
-      ruta: path,
-      hito: typeChange.seter,
-      ambito: stateAmbitReaction.local,
-      datoNuevo: transformedValue,
-      datoActual: oldValue
-    }))
-
-    return transformedValue as With_exe_<T>
   }
 
   /**
@@ -347,18 +308,18 @@ export class _exe_ {
    * @param value Objeto o valor a asignar
    * @param muting Indica si se mutará el destino o no.
    * @param transformValue Indica si se transformará el valor al tipo de estructura de destino si existe
-   * @returns {With_exe_<T>} debuelve el objeto contenedor de la instancia. 
+   * @returns {TypeStruct_exe_<T>} debuelve el objeto contenedor de la instancia. 
    */
-  static set<T>(thisArg: any, path: string, value: T, muting?: boolean, transformValue: boolean = true): With_exe_<T> {
-    let returnValue: With_exe_<T> = undefined as any
+  static set<T>(thisArg: any, path: string, value: T, muting?: boolean, transformValue: boolean = true): TypeStruct_exe_<T> {
+    let returnValue: TypeStruct_exe_<T> = undefined as any
     if (!_exe_.be(thisArg)) {
       throw new Error("El objeto no tiene la propiedad _exe_ o no es compatible con la estructura jerárquica de datos.")
       // PPPS mejorar el mensaje de error
     }
     // Multiplexa la asignación de la propiedad a través de la ruta jerárquica con comodines
-    _exe_.route(thisArg, path, (propertyValue: any, propertyName: string, structTarget: any, _exe_Path: string, _exe_Struct: _exe_Struct) => {
-      muting = (muting != undefined) ? muting : _exe_.get_exe_(_exe_Struct).mutating
-      returnValue = _exe_.setProperty_strict(structTarget, propertyName, value, muting, transformValue, _exe_Path, _exe_Struct)
+    _exe_.route(thisArg, path, (propertyValue: any, propertyName: string, structTarget: any, _exe_Path: string, TypeStruct_exe_: TypeStruct_exe_<any>) => {
+      muting = (muting != undefined) ? muting : _exe_.get_exe_(TypeStruct_exe_).mutating
+      returnValue = _exe_.setProperty_strict(structTarget, propertyName, value, muting, transformValue, _exe_Path, TypeStruct_exe_)
     }, (err: string) => { throw new Error(err) })
     return returnValue
   }
@@ -431,7 +392,7 @@ export class _exe_ {
    * @param callbackfnKo Función que se va a llamar si no se encuentra el valor
    * @returns Valor encontrado o undefined si no se encuentra
    */
-  static route(cursor: Object, path: string = '', callBackfnOk?: (value: any, property: string, struct: any, _exe_Path: string, _exe_Struct: _exe_Struct) => void, callbackfnKo?: (err: string) => void, altOrigin?: { cursor: Object, path: string, _exe_Path: string, _exe_Struct: _exe_Struct }): any {
+  static route(cursor: Object, path: string = '', callBackfnOk?: (value: any, property: string, struct: any, _exe_Path: string, TypeStruct_exe_: TypeStruct_exe_<any>) => void, callbackfnKo?: (err: string) => void, altOrigin?: { cursor: Object, path: string, _exe_Path: string, TypeStruct_exe_: TypeStruct_exe_<any> }): any {
     let pathCursor = path
     let keyFind!: string
     let valueFind!: string
@@ -442,7 +403,7 @@ export class _exe_ {
     let returnValue: any = undefined
     let iteration: boolean = false
     let _exe_Path: string | undefined = undefined
-    let _exe_Struct: _exe_Struct | undefined = undefined
+    let TypeStruct_exe_: TypeStruct_exe_<any> | undefined = undefined
 
     let koFunction = () => {
       // ¡¡¡ En desarrollo navegación por path no soportada totalmente para objetos no Data_exe_ PPPS        
@@ -459,7 +420,7 @@ export class _exe_ {
         }
       } else if (altOrigin) {
         if (path === '') {
-          if (callBackfnOk) callBackfnOk(cursor, altOrigin.path, altOrigin.cursor, altOrigin._exe_Path, altOrigin._exe_Struct)
+          if (callBackfnOk) callBackfnOk(cursor, altOrigin.path, altOrigin.cursor, altOrigin._exe_Path, altOrigin.TypeStruct_exe_)
           return cursor
         }
         if (path[0] === '/') {
@@ -477,11 +438,11 @@ export class _exe_ {
 
         if (_exe_.be(returnValue)) {
           _exe_Path = propertyes.join('|')
-          _exe_Struct = returnValue as unknown as _exe_Struct
+          TypeStruct_exe_ = returnValue as unknown as TypeStruct_exe_<any>
         } else if (altOrigin) {
           _exe_Path = _exe_Path || altOrigin._exe_Path
-          _exe_Struct = _exe_Struct || altOrigin._exe_Struct
-        } else if (_exe_Struct === undefined || _exe_Path === undefined) {
+          TypeStruct_exe_ = TypeStruct_exe_ || altOrigin.TypeStruct_exe_
+        } else if (TypeStruct_exe_ === undefined || _exe_Path === undefined) {
           throw new Error(`Error of hierarchy , path "${path}" , property "${property}", not found in cursor "${returnValue.toString()}" `)
         }
 
@@ -504,7 +465,7 @@ export class _exe_ {
             if ((keyFind === '?' || keyFind === stringKey) && (all || valueFind === value.toString())) {
               ok = true
               iteration = true
-              returnValue = _exe_.route(value, propertyes.join('|'), callBackfnOk, callbackfnKo, { cursor: cursor, path: stringKey || '', _exe_Path: _exe_Path!, _exe_Struct: _exe_Struct! })
+              returnValue = _exe_.route(value, propertyes.join('|'), callBackfnOk, callbackfnKo, { cursor: cursor, path: stringKey || '', _exe_Path: _exe_Path!, TypeStruct_exe_: TypeStruct_exe_! })
             }
           })
           propertyes = []
@@ -512,13 +473,13 @@ export class _exe_ {
       }
 
       if (callbackfnKo && !ok && !iteration) callbackfnKo(`property ${property} not found in "${path}" rest path => ${propertyes.join('|')}`)
-      if (callBackfnOk && ok && !iteration) callBackfnOk(returnValue, property, cursor, _exe_Path!, _exe_Struct!)
+      if (callBackfnOk && ok && !iteration) callBackfnOk(returnValue, property, cursor, _exe_Path!, TypeStruct_exe_!)
       return returnValue
 
     } else {
       if (altOrigin) {
         if (path === '') {
-          if (callBackfnOk) callBackfnOk(cursor, altOrigin.path, altOrigin.cursor, _exe_Path!, _exe_Struct!)
+          if (callBackfnOk) callBackfnOk(cursor, altOrigin.path, altOrigin.cursor, _exe_Path!, TypeStruct_exe_!)
           return cursor
         }
       }
@@ -636,13 +597,13 @@ export class _exe_ {
    * *************************************************************************** 
    * @method typerData Metodo que Mixeará el typo del objeto recibido en Obj con _exe_Property.
    * @param obj Objeto to typer.
-   * @returns {With_exe_<T>} debuelve la instancia con la propiedad definida. 
+   * @returns {TypeStruct_exe_<T>} debuelve la instancia con la propiedad definida. 
    * @see _exe_Property
-   * @see With_exe_
+   * @see TypeStruct_exe_
    */
-  static typerData<T>(obj: T): With_exe_<T> {
+  static typerData<T>(obj: T): TypeStruct_exe_<T> {
     let manager = _exe_.get_exe_(obj)
-    return manager.proxyObj as With_exe_<T>
+    return manager.proxyObj as TypeStruct_exe_<T>
   }
 
   /**
@@ -664,6 +625,7 @@ export class _exe_ {
    * @see processingType
    */
   static gestType(valueTest: any): processingType {
+    if (valueTest == null || valueTest == undefined) return processingType.unset
     if (typeof valueTest == 'object')
       switch (valueTest.constructor.name) {
         case "Boolean": case "Number": case "BigInt": case "String": case "Symbol": case "RegExp": case 'Date': return processingType.primitiveData;
@@ -676,14 +638,17 @@ export class _exe_ {
           else if (valueTest instanceof Map) return processingType.map
           else if (valueTest instanceof Set) return processingType.set
           else if (valueTest instanceof Object) {
-            if ('selector' in valueTest && 'standalone' in valueTest) return processingType.NoMutation
+            if ('selector' in valueTest && 'standalone' in valueTest) return processingType.observ
             else return processingType.object
           } else return processingType.primitiveData
         }
       }
     else {
-      if (typeof valueTest == 'function') return processingType.function
-      else return processingType.primitiveData
+      switch (typeof valueTest) {
+        case 'boolean': case 'number': case 'bigint': case 'string': case 'symbol': return processingType.basicData;
+        case 'function': return processingType.function;
+        default: return processingType.primitiveData;
+      }
     }
   }
 
@@ -693,11 +658,11 @@ export class _exe_ {
    * @param type Tipo de instancia a crear.
    * @param fatherStruct Instancia padre.
    * @param fatherProperty Propiedad padre.
-   * @returns {_exe_Struct} debuelve la instancia proxy. 
+   * @returns {TypeStruct_exe_} debuelve la instancia proxy. 
    */
-  static newProxy<T>(thisArg: T, type: processingType, fatherStruct?: Type_exe_<any>, fatherProperty?: string): Type_exe_<T> {
-    let managementHierarchicalData = new ManagementHierarchicalDataObj() as ManagementHierarchicalData
+  static newProxy<T>(thisArg: T, type: processingType, fatherStruct?: TypeStruct_exe_<any>, fatherProperty?: string): TypeStruct_exe_<T> {
     let typeProcessing = type
+    let managementHierarchicalData = new ManagementHierarchicalDataObj({ processingType: type }) as ManagementHierarchicalData
     managementHierarchicalData.structObj = thisArg
     switch (type) {
       case processingType.array:
@@ -736,7 +701,7 @@ export class _exe_ {
             if (property == internal_exe_property) return true
             return Reflect.has(target, property)
           },
-        } as ProxyHandler<Object>) as _exe_Struct
+        } as ProxyHandler<Object>) as TypeStruct_exe_<any>
         break
       }
       case processingType.set:
@@ -795,10 +760,10 @@ export class _exe_ {
             if (property == internal_exe_property) return true
             return Reflect.has(target, property)
           },
-        } as ProxyHandler<Object>) as _exe_Struct
+        } as ProxyHandler<Object>) as TypeStruct_exe_<any>
         break
       }
-      case processingType.NoObserver: {
+      case processingType.noObserv: {
         managementHierarchicalData.proxyObj = new Proxy(thisArg, {
           get(target: object, property: string | symbol, receiver: any) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
@@ -820,6 +785,95 @@ export class _exe_ {
         break
       }
 
+      case processingType.observ: {
+        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
+          defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
+            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
+            if (Reflect.defineProperty(target, property, descriptor)) {
+              management_exe_.rootManagement.callReact(new datChangeObj({
+                ruta: management_exe_.path + '|' + property,
+                hito: typeChange.create,
+                ambito: stateAmbitReaction.local,
+                datoNuevo: descriptor.value,
+                datoActual: undefined
+              }))
+              return true
+            } else return false
+          },
+          set(target: object, property: string, val: any, receiver: any) {
+            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
+            let oldValue = Object.getOwnPropertyDescriptor(target, property)?.value
+            if (Reflect.set(target, property, val, receiver)) {
+              let propertySep = (Array.isArray(target)) ? '[' + property + ']' : '|' + property
+              management_exe_.rootManagement.callReact(new datChangeObj({
+                ruta: management_exe_.path + propertySep,
+                hito: typeChange.seter,
+                ambito: stateAmbitReaction.local,
+                datoNuevo: val,
+                datoActual: oldValue
+              }))
+              return true
+            } else return false
+          },
+          get(target: object, property: string | symbol, receiver: any) {
+            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
+            if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
+            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
+            if (typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) {
+              if (property === 'set' || property === 'add') {
+                let valueBound = value.bind(target)
+                value = function (propertyKey: any, propertyValue: any) {
+                  let oldValue = Object.getOwnPropertyDescriptor(target, propertyKey)?.value
+                  if (valueBound(propertyKey, propertyValue)) {
+                    if (property === "set") (target as Set<any>).forEach((item: any, index: number) => { if (item === propertyValue) propertyKey = index.toString() })
+                    management_exe_.rootManagement.callReact(new datChangeObj({
+                      ruta: management_exe_.path + '[' + propertyKey + ']',
+                      hito: typeChange.seter,
+                      ambito: stateAmbitReaction.local,
+                      datoNuevo: propertyValue,
+                      datoActual: oldValue
+                    }))
+                  }
+                  return management_exe_.proxyObj
+                }
+              }
+            } else if (management_exe_.rootManagement.observingGets) {
+              let propertySep = (Array.isArray(target)) ? '[' + property.toString() + ']' : '|' + property.toString()
+              management_exe_.rootManagement.callReact(
+                new datChangeObj({
+                  ruta: management_exe_.path + propertySep,
+                  hito: typeChange.geter,
+                  ambito: stateAmbitReaction.local,
+                  datoNuevo: value,
+                  datoActual: undefined
+                }))
+            }
+            return value;
+          },
+          has(target, property) {
+            if (property == internal_exe_property) return true
+            return Reflect.has(target, property)
+          },
+        } as ProxyHandler<Object>) as TypeStruct_exe_<any>
+        break
+      }
+      case processingType.noObserv: {
+        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
+          get(target: object, property: string | symbol, receiver: any) {
+            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
+            if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
+            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
+            if ((typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) && ((property === 'set' || property === 'add')))
+              value = value.bind(target)
+            return value;
+          },
+          has(target, property) {
+            if (property == internal_exe_property) return true
+            return Reflect.has(target, property)
+          },
+        } as ProxyHandler<Object>) as TypeStruct_exe_<any>
+        break
+      }
       default:
         managementHierarchicalData.proxyObj = new Proxy(thisArg, {
           defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
@@ -889,7 +943,7 @@ export class _exe_ {
             if (property == internal_exe_property) return true
             return Reflect.has(target, property)
           },
-        } as ProxyHandler<Object>) as _exe_Struct
+        } as ProxyHandler<Object>) as TypeStruct_exe_<any>
         break
     }
     if (fatherStruct && fatherProperty) {
@@ -964,7 +1018,7 @@ export interface datChange extends datChangeObj { }
  * @interface datChange Este objeto es utilizado como respuesta en los eventos de la estructura
  * @class datChangeObj
  * @see datChange
- * @see _exe_Struct
+ * @see TypeStruct_exe_
  */
 export class datChangeObj {
   /**
@@ -1006,7 +1060,8 @@ export class ManagementHierarchicalDataObj {
   structObj!: any
   proxyObj!: any
   mutating: boolean = true
-  observing: boolean = true
+  observingGets: boolean = false
+  processingType: processingType = processingType.object
   rootManagement!: ManagementReactionsObj
 }
 
@@ -1031,7 +1086,7 @@ class ProtoManagementHierarchicalDataObj {
    * @returns {Data_exe_} setIf_ debuelve el objeto contenedor de la instancia setIf debuelve valor de la propiedad asignada. 
    * @see _exe_.set Este método utiliza el metodo set en caso de definir la propiedad     
    */
-  public setIf_<T>(property: string, value: T, oval: any = undefined, muting?: boolean): With_exe_<T> {
+  public setIf_<T>(property: string, value: T, oval: any = undefined, muting?: boolean): TypeStruct_exe_<T> {
     return _exe_.setIfn_((this as unknown as ManagementHierarchicalData).proxyObj, property || '', value, oval, muting)
   }
   /**
@@ -1042,11 +1097,11 @@ class ProtoManagementHierarchicalDataObj {
      * @param value Objeto o valor a asignar
      * @param oval Valor de la propiedad que asumirá como Undefined , asignando value a la propiedad como si no estubiese definida.
      * @param muting Indica si se mutará el destino o no.
-     * @returns {With_exe_<T>} Debuelve la propiedad asignada. 
+     * @returns {TypeStruct_exe_<T>} Debuelve la propiedad asignada. 
      * @see _exe_.set Este método utiliza el metodo set en caso de definir la propiedad     
      */
-  public setIf<T>(property: string, value: T, oval: any = undefined, muting?: boolean): With_exe_<T> {
-    return (_exe_.setIfn_((this as unknown as ManagementHierarchicalData).proxyObj, property || '', value, oval, muting) as _exe_Struct)._exe_.getByStr(property)
+  public setIf<T>(property: string, value: T, oval: any = undefined, muting?: boolean): TypeStruct_exe_<T> {
+    return (_exe_.setIfn_((this as unknown as ManagementHierarchicalData).proxyObj, property || '', value, oval, muting) as TypeStruct_exe_<any>)._exe_.getByStr(property)
   }
 
   /** 
@@ -1057,7 +1112,7 @@ class ProtoManagementHierarchicalDataObj {
    * @param muting Indica si debe de transformar los Objetos de las propiedades en una estructura de DatosObj recursivamente.
    * @returns {Data_exe_} debuelve el objeto contenedor de la instancia. 
    */
-  public set_<T>(property: string, value: any, muting?: boolean): With_exe_<T> {
+  public set_<T>(property: string, value: any, muting?: boolean): TypeStruct_exe_<T> {
     return _exe_.set((this as unknown as ManagementHierarchicalData).proxyObj, property, value, muting)
   }
   /**
@@ -1065,10 +1120,10 @@ class ProtoManagementHierarchicalDataObj {
    * @param property Nombre de la propiedad.
    * @param value Objeto o valor a asignar.
    * @param muting Indica si debe transformar objetos en estructura jerárquica.
-   * @returns {With_exe_<T>} Valor de la propiedad asignada.
+   * @returns {TypeStruct_exe_<T>} Valor de la propiedad asignada.
    */
-  public set<T>(property: string, value: any, muting?: boolean): With_exe_<T> {
-    return (_exe_.set((this as unknown as ManagementHierarchicalData).proxyObj, property, value, muting) as _exe_Struct)._exe_.getByStr(property)
+  public set<T>(property: string, value: any, muting?: boolean): TypeStruct_exe_<T> {
+    return (_exe_.set((this as unknown as ManagementHierarchicalData).proxyObj, property, value, muting) as TypeStruct_exe_<any>)._exe_.getByStr(property)
   }
 
   /**
@@ -1158,7 +1213,7 @@ export class ManagementReactionsObj {
    * Crea un gestor de reacciones asociado a un nodo raíz.
    * @param rootDatos Nodo raíz de la estructura jerárquica.
    */
-  constructor(rootDatos: _exe_Struct) {
+  constructor(rootDatos: TypeStruct_exe_<any>) {
     this.root = rootDatos
   }
 
@@ -1176,7 +1231,7 @@ export class ManagementReactionsObj {
   /** @property list of reactions */
   private reactions: Record<number, Reaction> = {}
   /** @property Root of the hierarchical data */
-  public root!: _exe_Struct
+  public root!: TypeStruct_exe_<any>
 
   /** @property List of objects that do not mutate */
   public UserNoMutationObjs = []
