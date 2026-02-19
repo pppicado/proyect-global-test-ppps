@@ -11,35 +11,7 @@
 ** By Pedro Pablo Picado Sánchez
 */
 
-// config
-const internal_exe_property = Symbol('internal_exe_property')
-const string_exe_property = '_exe_'
-
-
-export type TypeStruct_exe_<T> =
-  T extends Map<infer K, infer V> ? Map<K, TypeStruct_exe_<V>> & _exe_Property_fix :
-  T extends Set<infer U> ? Set<TypeStruct_exe_<U>> & _exe_Property_fix :
-  T extends Array<infer E> ? Array<TypeStruct_exe_<E>> & _exe_Property_fix :
-  T extends object ? { [K in keyof T]: TypeStruct_exe_<T[K]> } & _exe_Property_fix
-  : T & _exe_Property_opt;
-
-export interface _exe_Property_opt extends Partial<_exe_Property_mandatory> { }
-export interface _exe_Property_fix extends Partial<_exe_Property_index> { }
-export interface _exe_Property_mandatory { _exe_: ManagementHierarchicalData; }
-export interface _exe_Property_index { "_exe_": ManagementHierarchicalData; }
-
-var descKK = { value: { pp: 'pp' } }
-var kk = {} as TypeStruct_exe_<typeof descKK>
-kk._exe_.export()
-kk.value._exe_.export()
-kk._exe_.export()
-kk.value.pp._exe_.export()
-
-export type ActionChange = (change: datChangeObj) => void
-export type OptionalParams<T> = Partial<T> | undefined;
-export enum typeChange { 'create', 'seter', 'change', 'geter', 'delete' }
-export enum stateAmbitReaction { all, local, childens, fathers, pause } // all = local + childens + fathers
-export enum processingType { unset, basicData, primitiveData, object, observ, noObserv, noMutation, array, map, set, function }
+import { ActionChange, datChange, datChangeObj, internal_exe_property, InternalUtils, ManagementReactionObj, processingType, Reaction, ReactionObj, stateAmbitReaction, typeChange, TypeStruct_exe_ } from "./inernalUtils";
 
 /**
  * *************************************************************************** 
@@ -48,13 +20,7 @@ export enum processingType { unset, basicData, primitiveData, object, observ, no
  *  Proporciona métodos para definir, liberar , aplicar trampas proxy y mutar propiedades de objetos.
  */
 export class _exe_ {
-  /**
-   * Crea una instancia de gestor _exe_ sin estado interno.
-   */
-  constructor() { }
-
-
-  static get name_simbol_internal_exe_property() { return internal_exe_property }
+  static intenal_utils = InternalUtils
 
   /**
    * Comprueba si un objeto tiene la propiedad internal_exe_property e implica que es un objeto gestionado por _exe_ con proxy.
@@ -63,12 +29,6 @@ export class _exe_ {
    */
   static be(target: any) {
     return (target != null && typeof target == 'object' && internal_exe_property in target)
-  }
-
-
-  static get_exe_(target: any): ManagementHierarchicalData {
-    if (!_exe_.be(target)) throw new Error("El objeto no es gestionado por _exe_.")
-    return target[internal_exe_property]
   }
 
   /**
@@ -80,19 +40,10 @@ export class _exe_ {
    * @throws Error si el tipo de objeto no es compatible.
    */
   static newStruct_exe_<T extends object>(importObj: T, fatherStruct?: TypeStruct_exe_<any>, fatherProperty?: string): TypeStruct_exe_<T> {
-    let typeStruct = _exe_.gestType(importObj)
-    let newStruct: any = undefined
-    switch (typeStruct) {
-      case processingType.object: newStruct = {}; break;
-      case processingType.array: newStruct = []; break;
-      case processingType.map: newStruct = new Map(); break;
-      case processingType.set: newStruct = new Set(); break;
-      default:
-        throw new Error("El tipo de objeto no es compatible con la estructura jerárquica de datos.")
-    }
-    return _exe_.newProxy(importObj, typeStruct, fatherStruct, fatherProperty)
+    let typeStruct = _exe_.intenal_utils.gestType(importObj)
+    return _exe_.intenal_utils.newProxy(importObj, typeStruct, fatherStruct, fatherProperty)
   }
-
+ 
   /**
    * *************************************************************************** 
    * @method free Metodo que borra la propiedad de la instancia.
@@ -101,7 +52,7 @@ export class _exe_ {
    */
   static free<T>(target: T, property: string = ''): T {
     if (_exe_.be(target)) {
-      switch (_exe_.gestType(target)) {
+      switch (_exe_.intenal_utils.gestType(target)) {
         case processingType.object:
           delete (target as unknown as Object)[property]
           break;
@@ -117,7 +68,6 @@ export class _exe_ {
     }
     return target
   }
-
   /**
    * *************************************************************************** 
    * @method defineIfn Metodo que definirá y/o creará condicionalmente una propiedad de 
@@ -130,175 +80,11 @@ export class _exe_ {
    * @see define Este método utiliza el metodo define en caso de definir la propiedad     
    */
   static setIfn_<T>(target: T, property: string, value?: any, oval: any = undefined, muting?: boolean): TypeStruct_exe_<T> {
-    let actVal = _exe_.getByStr(target, property)
+    let actVal = _exe_.intenal_utils.getByStr(target, property)
     if (actVal == undefined || actVal.toString() != oval.toString())
       _exe_.set(target, property, value, muting)
     return (target as unknown as TypeStruct_exe_<T>)
   }
-
-  /**
-   * @method ghostSet (USO INTERNO) Asigna un valor a una propiedad de una instancia de TypeStruct_exe_ sin lanzar reacciones.
-   * @param thisArg Instancia de TypeStruct_exe_.
-   * @param property property solo podrá tener nombres de las propiedades de thisArg  
-   * @param value Valor a asignar.
-   * @param muting Indica si se mutará el destino o no.
-   * @returns {TypeStruct_exe_<T>} Devuelve la instancia con el valor asignado.
-   */
-  static ghostSet<T>(thisArg: any, property: string, value: T, muting?: boolean): TypeStruct_exe_<T> {
-    let returValue!: TypeStruct_exe_<T>
-    let manage = _exe_.get_exe_(thisArg).rootManagement
-    let manageBufferState = manage.getBuffer()
-    let subBufferId: number = -1
-    if (manageBufferState) subBufferId = manage.pushSubBuffer()
-    manage.setBuffer(true)
-    returValue = _exe_.set<T>(thisArg, property, value, muting)
-    manage.clearBuffer()
-    manage.setBuffer(false)
-    if (manageBufferState) manage.popSubBuffer(subBufferId)
-    manage.setBuffer(manageBufferState)
-    return returValue
-  }
-
-  /**
-   * *************************************************************************** 
-   * @method setProperty (USO INTERNO) Asigna un valor a una propiedad de una instancia de TypeStruct_exe_.
-   * @param thisArg Instancia de TypeStruct_exe_.
-   * @param property property solo podrá tener nombres de las propiedades de thisArg  
-   * @param value Valor a asignar.
-   * @param muting Indica si se mutará el destino o no.
-   * @param transformValue Indica si se transformará el valor al tipo de estructura de destino si existe
-   * @returns {TypeStruct_exe_<T>} Devuelve la instancia con el valor asignado.
-   */
-
-  static setProperty_strict<T>(thisArg: any, property: string, value: T, muting: boolean, transformValue: boolean, _exe_Path: string, TypeStruct_exe_: TypeStruct_exe_<any>): TypeStruct_exe_<T> {
-    let typeValue!: processingType
-    let typeTarget!: processingType
-    let path = _exe_.path(TypeStruct_exe_)
-    let oldValue = _exe_.export(thisArg, property)
-    let target = _exe_.getByStr(thisArg, property)
-    let transformedValue: any = value
-    let propertyCreated = false
-
-    muting = muting || _exe_.get_exe_(TypeStruct_exe_).mutating
-
-    typeValue = (muting) ? _exe_.gestType(value) : processingType.noMutation
-    typeTarget = _exe_.gestType(target)
-
-    // Transform value to _exe_ structure if transformValue is enabled and muting is enabled
-    if (transformValue && muting) {
-
-      //         switch (typeValue) {
-      //     case processingType.array:
-      //       transformedValue = value
-      //       break
-      //     case processingType.map:
-      //       transformedValue = value
-      //       break
-      //     case processingType.set:
-      //       transformedValue = value
-      //       break
-      //     case processingType.object:
-      //       transformedValue = value
-      //       break
-      //     default:
-      //       transformedValue = value
-      //   }
-      // }
-
-      switch (typeTarget) {
-        case processingType.unset: {
-
-          break;
-
-        }
-
-        case processingType.array: {
-          while ((target as any[]).length < (Number(property) + 1)) {
-            (target as any[]).push(undefined)
-            thisArg._exe_.rootManagement.callReact(new datChangeObj({
-              ruta: path + '[' + ((target as any[]).length - 1) + ']',
-              hito: typeChange.create,
-              ambito: stateAmbitReaction.local,
-              datoNuevo: undefined,
-              datoActual: undefined
-            }))
-          }
-          (target as Array<any>)[Number(property)] = transformedValue
-          path += '[' + property + ']'
-          break
-        }
-        case processingType.map: {
-          if (!(target as Map<string, any>).has(property)) {
-            (target as Map<string, any>).set(property, undefined)
-            propertyCreated = true
-            thisArg._exe_.rootManagement.callReact(new datChangeObj({
-              ruta: path + '[' + property + ']',
-              hito: typeChange.create,
-              ambito: stateAmbitReaction.local,
-              datoNuevo: undefined,
-              datoActual: undefined
-            }))
-          }
-          (target as Map<string, any>).set(property, transformedValue)
-          path += '[' + property + ']'
-          break
-        }
-        case processingType.set: {
-          if (!(target as Set<any>).has(transformedValue)) {
-            property = (target as Set<any>).size.toString();
-            (target as Set<any>).add(transformedValue)
-            propertyCreated = true
-            thisArg._exe_.rootManagement.callReact(new datChangeObj({
-              ruta: path + '[' + property + ']',
-              hito: typeChange.create,
-              ambito: stateAmbitReaction.local,
-              datoNuevo: transformedValue,
-              datoActual: undefined
-            }))
-          } else {
-            (target as Set<any>).forEach((item: any, index: number) => {
-              if (item === transformedValue) property = index.toString()
-            })
-          }
-          path += '[' + property + ']'
-          break
-        }
-        case processingType.object: {
-          if (!(property in (target as Object))) {
-            (target as Object)[property] = undefined
-            propertyCreated = true
-            thisArg._exe_.rootManagement.callReact(new datChangeObj({
-              ruta: path + '|' + property,
-              hito: typeChange.create,
-              ambito: stateAmbitReaction.local,
-              datoNuevo: undefined,
-              datoActual: undefined
-            }))
-          }
-          (target as Object)[property] = transformedValue
-          path += '|' + property
-          break
-        }
-        default: {
-          // For primitive targets or unknown types, assign directly to thisArg
-          (thisArg as any)[property] = transformedValue
-          path += '|' + property
-        }
-      }
-
-      // Trigger set reaction
-      thisArg._exe_.rootManagement.callReact(new datChangeObj({
-        ruta: path,
-        hito: typeChange.seter,
-        ambito: stateAmbitReaction.local,
-        datoNuevo: transformedValue,
-        datoActual: oldValue
-      }))
-
-      return transformedValue as TypeStruct_exe_<T>
-    }
-  }
-
   /**
    * *************************************************************************** 
    * @method set Metodo que asignará y/o creará una o varias propiedades de 
@@ -318,71 +104,11 @@ export class _exe_ {
     }
     // Multiplexa la asignación de la propiedad a través de la ruta jerárquica con comodines
     _exe_.route(thisArg, path, (propertyValue: any, propertyName: string, structTarget: any, _exe_Path: string, TypeStruct_exe_: TypeStruct_exe_<any>) => {
-      muting = (muting != undefined) ? muting : _exe_.get_exe_(TypeStruct_exe_).mutating
-      returnValue = _exe_.setProperty_strict(structTarget, propertyName, value, muting, transformValue, _exe_Path, TypeStruct_exe_)
+      muting = (muting != undefined) ? muting : _exe_.intenal_utils.get_exe_(TypeStruct_exe_).mutating
+      returnValue = _exe_.intenal_utils.setProperty_strict(structTarget, propertyName, value) // PPPS en proceso , muting, transformValue, _exe_Path, TypeStruct_exe_
     }, (err: string) => { throw new Error(err) })
     return returnValue
   }
-
-  /**	
-   * ***************************************************************************
-   * @method getByStr Devuelve el valor de una propiedad de un objeto por su nombre.
-   * @param target Objeto del cual se va a obtener el valor
-   * @param property Nombre de la propiedad a obtener
-   * @param callBackfnOk Función que se va a llamar si se encuentra el valor
-   * @param callbackfnKo Función que se va a llamar si no se encuentra el valor
-   * @returns Valor encontrado o undefined si no se encuentra
-   */
-  static getByStr(target: any, property: string, callBackfnOk?: (value: any) => void, callbackfnKo?: (err: string) => void): any {
-    let value: any = undefined
-    let err: string = ''
-    let objectErr: string = ''
-
-    switch (_exe_.gestType(target)) {
-      case processingType.object: {
-        if (!(property in (target as object))) err = `property ${property} not found in "${target.toString()}"`
-        // else value = Object.getOwnPropertyDescriptor(target, property)?.value
-        else value = (target as object)[property]
-        break;
-      }
-
-      case processingType.map: {
-        if ((target as Map<any, any>).has(property)) value = (target as Map<any, any>).get(property)
-        else {
-          let numProperty = Number(property)
-          if (!isNaN(numProperty) && numProperty < (target as Map<any, any>).size)
-            value = Array.from((target as Map<any, any>).values())[numProperty]
-          else {
-            objectErr = (_exe_.be(target)) ? _exe_.path(target) : target.toString()
-            err = `property ${property} not found in " ${objectErr}"`
-          }
-        }
-        break;
-      }
-      case processingType.set: {
-        if ((target as Set<any>).has(property)) value = property
-        else {
-          let numProperty = Number(property)
-          if (!isNaN(numProperty) && numProperty < (target as Set<any>).size) value = Array.from((target as Set<any>).values())[numProperty]
-          else {
-            objectErr = (_exe_.be(target)) ? _exe_.path(target) : target.toString()
-            err = `property ${property} not found in " ${objectErr}"`
-          }
-        }
-        break;
-      }
-      default:
-        err = `Object or property typeError: ${property} in "${target.toString()}"`
-    }
-
-    if (err != '') {
-      if (callbackfnKo) callbackfnKo(err)
-    } else {
-      if (callBackfnOk) callBackfnOk(value)
-    }
-    return value
-  }
-
   /**	
    * ***************************************************************************
    * Recorre un Objeto por un path y devuelve el valor encontrado o undefined si no lo encuentra.
@@ -415,7 +141,7 @@ export class _exe_ {
       if (_exe_.be(cursor)) {
         if (path === '') path = _exe_.path(cursor)
         if (path[0] == '/') {
-          cursor = _exe_.get_exe_(cursor).rootManagement.root
+          cursor = _exe_.intenal_utils.get_exe_(cursor).rootManagement.root
           pathCursor = path.slice((path.length > 1 && path[1] === '|') ? 2 : 1)
         }
       } else if (altOrigin) {
@@ -457,7 +183,7 @@ export class _exe_ {
         }
 
         if (property[0] != '(') {
-          returnValue = _exe_.getByStr(cursor, property, () => { }, (err) => ok = false)
+          returnValue = _exe_.intenal_utils.getByStr(cursor, property, () => { }, (err) => ok = false)
         } else {
           [keyFind, valueFind] = property.slice(1, property.length - 1).split(':')
           ok = false
@@ -496,7 +222,7 @@ export class _exe_ {
    */
   static forEach(target: any, callbackfn: (value: any, realKey?: any, stringKey?: string, target?: any) => void, thisArg?: any): void {
     let arrayKeyValues: Array<[value: any, realKey: any, stringKey: string]> = []
-    switch (_exe_.gestType(target)) {
+    switch (_exe_.intenal_utils.gestType(target)) {
       case processingType.object:
         arrayKeyValues = Object.entries(target).map((item) => [item[1], item[0], item[0].toString()])
         break;
@@ -528,10 +254,10 @@ export class _exe_ {
    */
   static export(thisArg: any, property: string = '', targetFill?: object | any[] | Map<any, any> | Set<any>): any {
     // PPPS necesita desarrollar mejora de exportación adminiendo rutas desarrollar con route()
-    let origen = (property == '') ? thisArg : _exe_.getByStr(thisArg, property)
+    let origen = (property == '') ? thisArg : _exe_.intenal_utils.getByStr(thisArg, property)
     let target: any = origen
     let descriptor: PropertyDescriptor
-    switch (_exe_.gestType(origen)) {
+    switch (_exe_.intenal_utils.gestType(origen)) {
       case processingType.object: {
         target = new Object()
         _exe_.forEach(origen, (value, realKey) => {
@@ -574,7 +300,7 @@ export class _exe_ {
    * @returns {Reaction} debuelve la reacción ejecutada.
    */
   static react(thisArg: any, path: string | datChangeObj, action: ActionChange, component?: Object): Reaction {
-    let manager = _exe_.get_exe_(thisArg)
+    let manager = _exe_.intenal_utils.get_exe_(thisArg)
     if (typeof path == 'string') {
       // posible mejora identificación de propiedad en caso de ser array/map/set PPPS
       path = (path.indexOf('/') === 0) ? path : manager.path + ((path.indexOf('[') === 0) ? '' : '|') + path
@@ -589,21 +315,8 @@ export class _exe_ {
    * @param idReaction Identificador de la reacción.
    */
   static declineReact(thisArg: any, idReaction: number | Reaction): Reaction {
-    let manager = _exe_.get_exe_(thisArg)
+    let manager = _exe_.intenal_utils.get_exe_(thisArg)
     return manager.rootManagement.declineReact(idReaction)
-  }
-
-  /**
-   * *************************************************************************** 
-   * @method typerData Metodo que Mixeará el typo del objeto recibido en Obj con _exe_Property.
-   * @param obj Objeto to typer.
-   * @returns {TypeStruct_exe_<T>} debuelve la instancia con la propiedad definida. 
-   * @see _exe_Property
-   * @see TypeStruct_exe_
-   */
-  static typerData<T>(obj: T): TypeStruct_exe_<T> {
-    let manager = _exe_.get_exe_(obj)
-    return manager.proxyObj as TypeStruct_exe_<T>
   }
 
   /**
@@ -612,433 +325,13 @@ export class _exe_ {
    * @returns {string} debuelve la ruta de la instancia. 
    */
   static path(thisArg: any): string {
-    let manager = _exe_.get_exe_(thisArg)
+    let manager = _exe_.intenal_utils.get_exe_(thisArg)
     return manager.path
   }
 
-
-  /**
-   * *************************************************************************** 
-   * @method gestType Metodo que devolverá el tipo procesado que deberá recibir el dato.
-   * @param valueTest Instancia a testear.
-   * @returns {processingType} debuelve el tipo procesado dato. 
-   * @see processingType
-   */
-  static gestType(valueTest: any): processingType {
-    if (valueTest == null || valueTest == undefined) return processingType.unset
-    if (typeof valueTest == 'object')
-      switch (valueTest.constructor.name) {
-        case "Boolean": case "Number": case "BigInt": case "String": case "Symbol": case "RegExp": case 'Date': return processingType.primitiveData;
-        case "WeakMap": case "WeakSet": case "ArrayBuffer": case "SharedArrayBuffer": return processingType.primitiveData;
-        case "DataView": case "ArrayBufferView": case "Promise": case "GeneratorFunction": return processingType.primitiveData;
-        case "Subject": case "BehaviorSubject": case "Observable": case "Subscription": return processingType.primitiveData;
-        case "Set": return processingType.set; case "Map": return processingType.map; case "Array": return processingType.array;
-        default: {
-          if (Array.isArray(valueTest)) return processingType.array
-          else if (valueTest instanceof Map) return processingType.map
-          else if (valueTest instanceof Set) return processingType.set
-          else if (valueTest instanceof Object) {
-            if ('selector' in valueTest && 'standalone' in valueTest) return processingType.observ
-            else return processingType.object
-          } else return processingType.primitiveData
-        }
-      }
-    else {
-      switch (typeof valueTest) {
-        case 'boolean': case 'number': case 'bigint': case 'string': case 'symbol': return processingType.basicData;
-        case 'function': return processingType.function;
-        default: return processingType.primitiveData;
-      }
-    }
-  }
-
-  /**
-   * *************************************************************************** 
-   * @method proxyStruct Metodo que creará un proxy para la instancia de la clase.
-   * @param type Tipo de instancia a crear.
-   * @param fatherStruct Instancia padre.
-   * @param fatherProperty Propiedad padre.
-   * @returns {TypeStruct_exe_} debuelve la instancia proxy. 
-   */
-  static newProxy<T>(thisArg: T, type: processingType, fatherStruct?: TypeStruct_exe_<any>, fatherProperty?: string): TypeStruct_exe_<T> {
-    let typeProcessing = type
-    let managementHierarchicalData = new ManagementHierarchicalDataObj({ processingType: type }) as ManagementHierarchicalData
-    managementHierarchicalData.structObj = thisArg
-    switch (type) {
-      case processingType.array:
-      case processingType.object: {
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
-          defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
-            managementHierarchicalData.set(property.toString(), descriptor.value)
-            // Posible mejora con validación de fallo creación de propiedad PPPS
-            return true
-          },
-          set(target: object, property: string, val: any, receiver: any) {
-            managementHierarchicalData.set(property.toString(), val)
-            // Posible mejora con validación de fallo asignación PPPS
-            return true
-          },
-          get(target: object, property: string | symbol, receiver: any) {
-            if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            if (property == '_exe_' && !('_exe_' in target)) {
-              return managementHierarchicalData as ManagementHierarchicalData
-            } else {
-              let value = Reflect.get(target, property, receiver)
-              if (managementHierarchicalData.rootManagement.observingGets) {
-                managementHierarchicalData.rootManagement.callReact(new datChangeObj({
-                  ruta: managementHierarchicalData.path + (typeProcessing == processingType.array) ? '[' + property.toString() + ']' : '|' + property.toString(),
-                  hito: typeChange.geter,
-                  ambito: stateAmbitReaction.local,
-                  datoNuevo: value,
-                  datoActual: undefined
-                }))
-              }
-              return value
-            }
-
-          },
-          has(target, property) {
-            if (property == internal_exe_property) return true
-            return Reflect.has(target, property)
-          },
-        } as ProxyHandler<Object>) as TypeStruct_exe_<any>
-        break
-      }
-      case processingType.set:
-      case processingType.map: {
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
-          defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
-            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
-            if (Reflect.defineProperty(target, property, descriptor)) {
-              management_exe_.rootManagement.callReact(new datChangeObj({
-                ruta: management_exe_.path + '|' + property,
-                hito: typeChange.create,
-                ambito: stateAmbitReaction.local,
-                datoNuevo: descriptor.value,
-                datoActual: undefined
-              }))
-              return true
-            } else return false
-          },
-          set(target: object, property: string, val: any, receiver: any) {
-            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
-            let oldValue = Object.getOwnPropertyDescriptor(target, property)?.value
-            if (Reflect.set(target, property, val, receiver)) {
-              management_exe_.rootManagement.callReact(new datChangeObj({
-                ruta: management_exe_.path + '|' + property,
-                hito: typeChange.seter,
-                ambito: stateAmbitReaction.local,
-                datoNuevo: val,
-                datoActual: oldValue
-              }))
-              return true
-            } else return false
-          },
-          get(target: object, property: string | symbol, receiver: any) {
-            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
-            if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
-            if (typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) {
-              if (property in ['set', 'add']) {
-                value = function (propertyKey: any, propertyValue: any) {
-                  propertyValue = management_exe_.set(propertyKey, propertyValue)
-                  return management_exe_.proxyObj
-                }
-              } else value = value.bind(target)
-            } else if (management_exe_.rootManagement.observingGets) {
-              management_exe_.rootManagement.callReact(new datChangeObj({
-                ruta: management_exe_.path + '[' + property.toString() + ']',
-                hito: typeChange.geter,
-                ambito: stateAmbitReaction.local,
-                datoNuevo: value,
-                datoActual: undefined
-              }))
-            }
-            return value;
-          },
-          has(target, property) {
-            if (property == internal_exe_property) return true
-            return Reflect.has(target, property)
-          },
-        } as ProxyHandler<Object>) as TypeStruct_exe_<any>
-        break
-      }
-      case processingType.noObserv: {
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
-          get(target: object, property: string | symbol, receiver: any) {
-            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
-            if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
-            if (typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) {
-              let valueBound = value.bind(target)
-              value = function (propertyKey: any, propertyValue: any) {
-                return valueBound(propertyKey, propertyValue)
-              }
-            }
-            return value;
-          },
-          has(target, property) {
-            if (property == internal_exe_property) return true
-            return Reflect.has(target, property)
-          },
-        } as ProxyHandler<Object>) as any
-        break
-      }
-
-      case processingType.observ: {
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
-          defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
-            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
-            if (Reflect.defineProperty(target, property, descriptor)) {
-              management_exe_.rootManagement.callReact(new datChangeObj({
-                ruta: management_exe_.path + '|' + property,
-                hito: typeChange.create,
-                ambito: stateAmbitReaction.local,
-                datoNuevo: descriptor.value,
-                datoActual: undefined
-              }))
-              return true
-            } else return false
-          },
-          set(target: object, property: string, val: any, receiver: any) {
-            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
-            let oldValue = Object.getOwnPropertyDescriptor(target, property)?.value
-            if (Reflect.set(target, property, val, receiver)) {
-              let propertySep = (Array.isArray(target)) ? '[' + property + ']' : '|' + property
-              management_exe_.rootManagement.callReact(new datChangeObj({
-                ruta: management_exe_.path + propertySep,
-                hito: typeChange.seter,
-                ambito: stateAmbitReaction.local,
-                datoNuevo: val,
-                datoActual: oldValue
-              }))
-              return true
-            } else return false
-          },
-          get(target: object, property: string | symbol, receiver: any) {
-            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
-            if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
-            if (typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) {
-              if (property === 'set' || property === 'add') {
-                let valueBound = value.bind(target)
-                value = function (propertyKey: any, propertyValue: any) {
-                  let oldValue = Object.getOwnPropertyDescriptor(target, propertyKey)?.value
-                  if (valueBound(propertyKey, propertyValue)) {
-                    if (property === "set") (target as Set<any>).forEach((item: any, index: number) => { if (item === propertyValue) propertyKey = index.toString() })
-                    management_exe_.rootManagement.callReact(new datChangeObj({
-                      ruta: management_exe_.path + '[' + propertyKey + ']',
-                      hito: typeChange.seter,
-                      ambito: stateAmbitReaction.local,
-                      datoNuevo: propertyValue,
-                      datoActual: oldValue
-                    }))
-                  }
-                  return management_exe_.proxyObj
-                }
-              }
-            } else if (management_exe_.rootManagement.observingGets) {
-              let propertySep = (Array.isArray(target)) ? '[' + property.toString() + ']' : '|' + property.toString()
-              management_exe_.rootManagement.callReact(
-                new datChangeObj({
-                  ruta: management_exe_.path + propertySep,
-                  hito: typeChange.geter,
-                  ambito: stateAmbitReaction.local,
-                  datoNuevo: value,
-                  datoActual: undefined
-                }))
-            }
-            return value;
-          },
-          has(target, property) {
-            if (property == internal_exe_property) return true
-            return Reflect.has(target, property)
-          },
-        } as ProxyHandler<Object>) as TypeStruct_exe_<any>
-        break
-      }
-      case processingType.noObserv: {
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
-          get(target: object, property: string | symbol, receiver: any) {
-            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
-            if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
-            if ((typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) && ((property === 'set' || property === 'add')))
-              value = value.bind(target)
-            return value;
-          },
-          has(target, property) {
-            if (property == internal_exe_property) return true
-            return Reflect.has(target, property)
-          },
-        } as ProxyHandler<Object>) as TypeStruct_exe_<any>
-        break
-      }
-      default:
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
-          defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
-            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
-            if (Reflect.defineProperty(target, property, descriptor)) {
-              management_exe_.rootManagement.callReact(new datChangeObj({
-                ruta: management_exe_.path + '|' + property,
-                hito: typeChange.create,
-                ambito: stateAmbitReaction.local,
-                datoNuevo: descriptor.value,
-                datoActual: undefined
-              }))
-              return true
-            } else return false
-          },
-          set(target: object, property: string, val: any, receiver: any) {
-            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
-            let oldValue = Object.getOwnPropertyDescriptor(target, property)?.value
-            if (Reflect.set(target, property, val, receiver)) {
-              let propertySep = (Array.isArray(target)) ? '[' + property + ']' : '|' + property
-              management_exe_.rootManagement.callReact(new datChangeObj({
-                ruta: management_exe_.path + propertySep,
-                hito: typeChange.seter,
-                ambito: stateAmbitReaction.local,
-                datoNuevo: val,
-                datoActual: oldValue
-              }))
-              return true
-            } else return false
-          },
-          get(target: object, property: string | symbol, receiver: any) {
-            let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
-            if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
-            if (typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) {
-              if (property === 'set' || property === 'add') {
-                let valueBound = value.bind(target)
-                value = function (propertyKey: any, propertyValue: any) {
-                  let oldValue = Object.getOwnPropertyDescriptor(target, propertyKey)?.value
-                  if (valueBound(propertyKey, propertyValue)) {
-                    if (property === "set") (target as Set<any>).forEach((item: any, index: number) => { if (item === propertyValue) propertyKey = index.toString() })
-                    management_exe_.rootManagement.callReact(new datChangeObj({
-                      ruta: management_exe_.path + '[' + propertyKey + ']',
-                      hito: typeChange.seter,
-                      ambito: stateAmbitReaction.local,
-                      datoNuevo: propertyValue,
-                      datoActual: oldValue
-                    }))
-                  }
-                  return management_exe_.proxyObj
-                }
-              }
-            } else if (management_exe_.rootManagement.observingGets) {
-              let propertySep = (Array.isArray(target)) ? '[' + property.toString() + ']' : '|' + property.toString()
-              management_exe_.rootManagement.callReact(
-                new datChangeObj({
-                  ruta: management_exe_.path + propertySep,
-                  hito: typeChange.geter,
-                  ambito: stateAmbitReaction.local,
-                  datoNuevo: value,
-                  datoActual: undefined
-                }))
-            }
-            return value;
-          },
-          has(target, property) {
-            if (property == internal_exe_property) return true
-            return Reflect.has(target, property)
-          },
-        } as ProxyHandler<Object>) as TypeStruct_exe_<any>
-        break
-    }
-    if (fatherStruct && fatherProperty) {
-      if (_exe_.gestType(fatherStruct) in [processingType.array, processingType.set, processingType.map])
-        fatherProperty = '[' + fatherProperty + ']'
-      else
-        fatherProperty = '|' + fatherProperty
-      managementHierarchicalData.path = _exe_.path(fatherStruct) + fatherProperty
-      managementHierarchicalData.rootManagement = _exe_.get_exe_(fatherStruct).rootManagement
-    } else managementHierarchicalData.rootManagement = new ManagementReactionsObj(managementHierarchicalData.proxyObj)
-    return managementHierarchicalData.proxyObj
-  }
 }
 
-export interface ManagementReaction extends ManagementReactionObj { }
-/**
- * @class ManagementReactionObj para las instancias de @see ManagementReactionObj
- * Este objeto es utilizado como respuesta en los eventos de _exe_
- * @see _exe_
- * @see ManagementReaction
- */
-export class ManagementReactionObj {
-  /**
-   * Crea una instancia de ManagementReactionObj con parámetros opcionales.
-   * @param parametros Parámetros de inicialización.
-   */
-  constructor(inicialValues?: Partial<ManagementReactionObj>) { Object.assign(this, inicialValues) }
-  [index: string]: any
-  /** @property Número de llamadas al evento */
-  "calls": number = 0
-  /** @property Estado de la subscripción */
-  "status": stateAmbitReaction = stateAmbitReaction.local
-  /** @property Indice de la subscripción */
-  "id": number = 0
-}
-
-
-export interface Reaction extends ReactionObj { }
-/**
- * @class ReactionObj Instancia de Reaction
- * Este objeto es utilizado como respuesta del contrato en _exe_.react
- * @see Reaction
- * @see _exe_
- */
-export class ReactionObj {
-  /**
-   * Crea una reacción y normaliza sus objetos de cambio y gestión.
-   * @param parametros Parámetros de inicialización.
-   */
-  constructor(inicialValues?: Partial<ReactionObj>) {
-    Object.assign(this, inicialValues)
-    this.change = new datChangeObj(this.change)
-    this.manage = new ManagementReactionObj(this.manage)
-  }
-  [index: string]: any
-  /** @property Objeto de cambio de datos */
-  "change": datChangeObj = new datChangeObj()
-  /** @property Función a ejecutar cuando cambia el valor */
-  "action": ActionChange = () => { }
-  /** @property Contexto en el que se ejecutará la función */
-  "thisArg": any = undefined
-  /** @property Objeto de gestión de subscripción */
-  "calls": number = 0
-  /** @property Objeto de gestión de subscripción */
-  "manage"!: ManagementReaction
-  /** @property Función para cancelar la subscripción */
-  "declineReact": () => void
-}
-
-export interface datChange extends datChangeObj { }
-/**
- * @interface datChange Este objeto es utilizado como respuesta en los eventos de la estructura
- * @class datChangeObj
- * @see datChange
- * @see TypeStruct_exe_
- */
-export class datChangeObj {
-  /**
-   * @constructor 
-   * @param ruta Ruta del cambio o listaParametros
-   * @param hito Hito del cambio
-   * @param ambito Ambito del cambio
-   * @param datoNuevo Dato Nuevo
-   * @param datoActual Dato Actual
-   */
-  constructor(inicialValues?: Partial<datChangeObj>) { Object.assign(this, inicialValues) }
-  "ruta": string = ''
-  "datoNuevo": any = undefined
-  "datoActual": any = undefined
-  "hito": typeChange = typeChange.change
-  "ambito": stateAmbitReaction = stateAmbitReaction.local
-  "thisArg": any = undefined
-}
-
-interface ManagementHierarchicalData extends ManagementHierarchicalDataObj, ProtoManagementHierarchicalDataObj { }
+export interface ManagementHierarchicalData extends ManagementHierarchicalDataObj, ProtoManagementHierarchicalDataObj { }
 /**
  * @class managementHierarchicalDataObj
  * Datos de gestión para un elemento de estructura tipo Data_exe_
@@ -1064,6 +357,7 @@ export class ManagementHierarchicalDataObj {
   processingType: processingType = processingType.object
   rootManagement!: ManagementReactionsObj
 }
+
 
 /**
  * @class ProtoManagementHierarchicalDataObj
@@ -1135,7 +429,7 @@ class ProtoManagementHierarchicalDataObj {
    * @returns {any} Valor de la propiedad indicada o undefined.
    */
   public getByStr(property: string, callBackfnOk?: (value: any) => void, callbackfnKo?: (err: string) => void): any {
-    return _exe_.getByStr((this as unknown as ManagementHierarchicalData).proxyObj, property, callBackfnOk, callbackfnKo)
+    return _exe_.intenal_utils.getByStr((this as unknown as ManagementHierarchicalData).proxyObj, property, callBackfnOk, callbackfnKo)
   }
 
   /**	

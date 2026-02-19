@@ -3,7 +3,6 @@ import { FloatingWindowService } from '@pppicado/redim-windows';
 import { ChartComponent } from './chart/chart.component';
 import { FormComponent } from './form/form.component';
 import { _exe_, datChangeObj, Reaction, stateAmbitReaction, typeChange } from '@pppicado/structexe';
-import { Type_exe_ } from 'projects/structexe/src/structexe';
 
 @Component({
   selector: 'app-root',
@@ -41,10 +40,17 @@ export class AppComponent {
       ]
     }
 
-    let data = _exe_.newStruct_exe_opt({ persona: persona })
+    let data = _exe_.newStruct_exe_({ persona: persona }) 
 
-    _exe_.path(data)
-    data._exe_!.path
+    _exe_.path(data.persona.name)
+    _exe_.path(data.persona)
+
+    data.persona.name._exe_
+    data.persona._exe_!.path
+    data.persona.name._exe_!.path
+    data.persona.address._exe_!.path
+    data.persona.address[0]._exe_!.path
+    data.persona.address[0].state._exe_!.path
 
     data.persona.name // 'John Doe'
     data.persona.age // 15
@@ -121,7 +127,7 @@ export class AppComponent {
     // console { oldValue: {...}, newValue: {...}, type: 'mod', path: '/|address[0]|state' }
     // console { oldValue: {...}, newValue: {...}, type: 'mod', path: '/|address[0]|zip' }
 
-    data.persona.address._exe_?.path // '/|address'
+    data.persona.address._exe_!.path // '/|address'
 
     // ***************************************************************************/
 

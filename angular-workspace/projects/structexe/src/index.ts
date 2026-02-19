@@ -3,31 +3,23 @@
  * Public API barrel export
  */
 export {
-    _exe_,
+    _exe_,    
+    ManagementHierarchicalData,        
+} from './structexe';
+export {    
     // Types
-    type _exe_Struct,
     type ActionChange,
-    type With_exe_opt,
-    type With_exe_,
-    type _exe_Property_opt,
-    type _exe_Property,
-    type Data_exe_,
-    type Array_exe_,
-    type Map_exe_,
-    type Set_exe_,
+    type TypeStruct_exe_,
     // Enums
     typeChange,
     stateAmbitReaction,
     processingType,
+    // config
+    processingTypeSet,
     // Classes
-    ManagementReactionObj,
-    ReactionObj,
     datChangeObj,
-    ManagementHierarchicalDataObj,
-    ManagementReactionsObj,
     // Interfaces
-    type ManagementReaction,
+    type ManagementReaction,    
     type Reaction,
     type datChange,
-    type ManagementReactions,
-} from './structexe';
+} from './inernalUtils';
