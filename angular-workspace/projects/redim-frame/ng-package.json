@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
-  "dest": "../../dist/redim-windows",
+  "dest": "../../dist/redim-frame",
   "lib": {
     "entryFile": "src/public-api.ts"
   }

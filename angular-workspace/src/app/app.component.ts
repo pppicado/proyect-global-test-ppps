@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FloatingWindowService } from '@pppicado/redim-windows';
+import { FloatingWindowService } from '@pppicado/redim-frame';
 import { ChartComponent } from './chart/chart.component';
 import { FormComponent } from './form/form.component';
 import { _exe_, datChangeObj, Reaction, stateAmbitReaction, typeChange } from '@pppicado/structexe';
@@ -40,7 +40,7 @@ export class AppComponent {
       ]
     }
 
-    let data = _exe_.newStruct_exe_({ persona: persona }) 
+    let data = _exe_.newStruct_exe_({ persona: persona })
 
     _exe_.path(data.persona.name)
     _exe_.path(data.persona)

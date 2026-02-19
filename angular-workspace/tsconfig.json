@@ -25,9 +25,9 @@
         "dist/virtual-scrollbar",
         "projects/virtual-scrollbar/src/public-api"
       ],
-      "@pppicado/redim-windows": [
-        "dist/redim-windows",
-        "projects/redim-windows/src/public-api"
+      "@pppicado/redim-frame": [
+        "dist/redim-frame",
+        "projects/redim-frame/src/public-api"
       ]
     },
     "target": "ES2022",

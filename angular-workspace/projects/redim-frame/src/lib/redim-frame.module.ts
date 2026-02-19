@@ -3,13 +3,13 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
-import { RedimWindowsComponent } from './redim-windows.component';
+import { RedimFrameComponent } from './redim-frame.component';
 import { FloatingWindowComponent } from './floating-window/floating-window.component';
 import { VirtualScrollbarModule } from '@pppicado/virtual-scrollbar';
 
 @NgModule({
   declarations: [
-    RedimWindowsComponent,
+    RedimFrameComponent,
     FloatingWindowComponent
   ],
   imports: [
@@ -20,9 +20,9 @@ import { VirtualScrollbarModule } from '@pppicado/virtual-scrollbar';
     VirtualScrollbarModule
   ],
   exports: [
-    RedimWindowsComponent,
+    RedimFrameComponent,
     FloatingWindowComponent,
     VirtualScrollbarModule
   ]
 })
-export class RedimWindowsModule { }
+export class RedimFrameModule { }

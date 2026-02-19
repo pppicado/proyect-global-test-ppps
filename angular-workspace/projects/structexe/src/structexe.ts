@@ -44,30 +44,31 @@ export class _exe_ {
     return _exe_.intenal_utils.newProxy(importObj, typeStruct, fatherStruct, fatherProperty)
   }
  
-  /**
-   * *************************************************************************** 
-   * @method free Metodo que borra la propiedad de la instancia.
-   * @param property Nombre de la propiedad
-   * @returns {Data_exe_} debuelve el objeto contenedor de la instancia. 
-   */
-  static free<T>(target: T, property: string = ''): T {
-    if (_exe_.be(target)) {
-      switch (_exe_.intenal_utils.gestType(target)) {
-        case processingType.object:
-          delete (target as unknown as Object)[property]
-          break;
-        case processingType.array:
-          delete (target as unknown as Array<any>)[Number(property)]
-          break;
-        case processingType.map:
-          (target as unknown as Map<any, any>).delete(property)
-          break;
-        case processingType.set:
-          (target as unknown as Set<any>).delete((target as unknown as Set<any>).values[Number(property)])
-      }
-    }
-    return target
-  }
+  // /**
+  //  * *************************************************************************** 
+  //  * @method free Metodo que borra la propiedad de la instancia.
+  //  * @param property Nombre de la propiedad
+  //  * @returns {Data_exe_} debuelve el objeto contenedor de la instancia. 
+  //  */
+  // static free<T>(target: T, property: string = ''): T {
+  //   if (_exe_.be(target)) {
+  //     switch (_exe_.intenal_utils.gestType(target)) {
+  //       case processingType.object:
+  //         delete (target as unknown as Object)[property]
+  //         break;
+  //       case processingType.array:
+  //         delete (target as unknown as Array<any>)[Number(property)]
+  //         break;
+  //       case processingType.map:
+  //         (target as unknown as Map<any, any>).delete(property)
+  //         break;
+  //       case processingType.set:
+  //         (target as unknown as Set<any>).delete((target as unknown as Set<any>).values[Number(property)])
+  //     }
+  //   }
+  //   return target
+  // }
+
   /**
    * *************************************************************************** 
    * @method defineIfn Metodo que definirá y/o creará condicionalmente una propiedad de 

@@ -4,6 +4,8 @@ import { PortalModule } from '@angular/cdk/portal';
 
 import { FloatingWindowComponent } from './floating-window.component';
 
+import { VirtualScrollbarModule } from '@pppicado/virtual-scrollbar';
+
 describe('FloatingWindowComponent', () => {
   let component: FloatingWindowComponent;
   let fixture: ComponentFixture<FloatingWindowComponent>;
@@ -11,7 +13,7 @@ describe('FloatingWindowComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [FloatingWindowComponent],
-      imports: [DragDropModule, PortalModule]
+      imports: [DragDropModule, PortalModule, VirtualScrollbarModule]
     });
     fixture = TestBed.createComponent(FloatingWindowComponent);
     component = fixture.componentInstance;

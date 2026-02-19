@@ -1,6 +1,6 @@
 # Redim Windows
 
-`redim-windows` is an Angular 16 library that provides resizable, draggable, and non-blocking floating windows using Bootstrap 5 styles. It leverages `@angular/cdk` for drag-and-drop functionality and dynamic content loading.
+`redim-frame` is an Angular 16 library that provides resizable, draggable, and non-blocking floating windows using Bootstrap 5 styles. It leverages `@angular/cdk` for drag-and-drop functionality and dynamic content loading.
 
 ## Features
 

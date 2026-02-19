@@ -97,23 +97,23 @@
         }
       }
     },
-    "redim-windows": {
+    "redim-frame": {
       "projectType": "library",
-      "root": "projects/redim-windows",
-      "sourceRoot": "projects/redim-windows/src",
+      "root": "projects/redim-frame",
+      "sourceRoot": "projects/redim-frame/src",
       "prefix": "lib",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "project": "projects/redim-windows/ng-package.json"
+            "project": "projects/redim-frame/ng-package.json"
           },
           "configurations": {
             "production": {
-              "tsConfig": "projects/redim-windows/tsconfig.lib.prod.json"
+              "tsConfig": "projects/redim-frame/tsconfig.lib.prod.json"
             },
             "development": {
-              "tsConfig": "projects/redim-windows/tsconfig.lib.json"
+              "tsConfig": "projects/redim-frame/tsconfig.lib.json"
             }
           },
           "defaultConfiguration": "production"
@@ -121,7 +121,7 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "tsConfig": "projects/redim-windows/tsconfig.spec.json",
+            "tsConfig": "projects/redim-frame/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing"

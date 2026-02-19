@@ -1,5 +1,5 @@
 {
-  "name": "@pppicado/redim-windows",
+  "name": "@pppicado/redim-frame",
   "version": "0.1.0",
   "description": "Floating, resizable, and draggable windows for Angular",
   "author": "Pedro Pablo Picado Sánchez",

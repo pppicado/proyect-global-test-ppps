@@ -1,5 +1,5 @@
 import { Component, Inject, Optional } from '@angular/core';
-import { WINDOW_DATA } from '@pppicado/redim-windows';
+import { WINDOW_DATA } from '@pppicado/redim-frame';
 
 @Component({
   selector: 'app-chart',

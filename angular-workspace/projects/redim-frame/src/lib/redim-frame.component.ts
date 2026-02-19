@@ -1,15 +1,15 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'lib-redim-windows',
+  selector: 'lib-redim-frame',
   template: `
     <p>
-      redim-windows works!
+      redim-frame works!
     </p>
   `,
   styles: [
   ]
 })
-export class RedimWindowsComponent {
+export class RedimFrameComponent {
 
 }

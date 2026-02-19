@@ -137,8 +137,8 @@ export class InternalUtils {
     switch (_exe_.intenal_utils.gestType(target)) {
       case processingType.object: {
         if (!(property in (target as object))) err = `property ${property} not found in "${target.toString()}"`
-        // else value = Object.getOwnPropertyDescriptor(target, property)?.value
-        else value = (target as object)[property]
+        // else value = Object.getOwnPropertyDescriptor(target, property)?.value        
+        else value = (target as any)[property]
         break;
       }
 
@@ -189,7 +189,7 @@ export class InternalUtils {
    */
   static gestType(valueTest: any): processingType {
     let detailed = _exe_.intenal_utils.gestTypeDetailed(valueTest)
-    return processingTypeSet.get(detailed) || processingTypeSet.set(detailed, processingType.object).get(detailed)
+    return processingTypeSet.get(detailed) || processingTypeSet.set(detailed, processingType.object).get(detailed) || processingType.unset
   }
 
   /**
@@ -261,7 +261,7 @@ export class InternalUtils {
     switch (type) {
       case processingType.array:
       case processingType.object: {
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
+        managementHierarchicalData.proxyObj = new Proxy((thisArg as unknown as object), {
           defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
             managementHierarchicalData.set(property.toString(), descriptor.value)
             // Posible mejora con validación de fallo creación de propiedad PPPS
@@ -300,7 +300,7 @@ export class InternalUtils {
       }
       case processingType.set:
       case processingType.map: {
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
+        managementHierarchicalData.proxyObj = new Proxy((thisArg as unknown as Map<any, any> | Set<any>), {
           defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
             if (Reflect.defineProperty(target, property, descriptor)) {
@@ -358,7 +358,7 @@ export class InternalUtils {
         break
       }
       case processingType.noObserv: {
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
+        managementHierarchicalData.proxyObj = new Proxy((thisArg as unknown as object), {
           get(target: object, property: string | symbol, receiver: any) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
             if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
@@ -380,7 +380,7 @@ export class InternalUtils {
       }
 
       case processingType.observ: {
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
+        managementHierarchicalData.proxyObj = new Proxy((thisArg as unknown as object), {
           defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
             if (Reflect.defineProperty(target, property, descriptor)) {
@@ -452,7 +452,7 @@ export class InternalUtils {
         break
       }
       case processingType.noObserv: {
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
+        managementHierarchicalData.proxyObj = new Proxy((thisArg as unknown as object), {
           get(target: object, property: string | symbol, receiver: any) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
             if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
@@ -469,7 +469,7 @@ export class InternalUtils {
         break
       }
       default:
-        managementHierarchicalData.proxyObj = new Proxy(thisArg, {
+        managementHierarchicalData.proxyObj = new Proxy((thisArg as unknown as object), {
           defineProperty(target: object, property: string, descriptor: PropertyDescriptor) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
             if (Reflect.defineProperty(target, property, descriptor)) {
