@@ -33,7 +33,7 @@ export class FloatingWindowService {
       hasBackdrop: false,
       scrollStrategy: this.overlay.scrollStrategies.noop()
     });
-                          
+
     const overlayRef = this.overlay.create(overlayConfig);
     const windowPortal = new ComponentPortal(FloatingWindowComponent);
     const windowRef = overlayRef.attach(windowPortal);
@@ -49,7 +49,8 @@ export class FloatingWindowService {
     const injector = Injector.create({
       parent: this.injector,
       providers: [
-        { provide: WINDOW_DATA, useValue: config.data }
+        { provide: WINDOW_DATA, useValue: config.data },
+        { provide: FloatingWindowComponent, useValue: windowInstance }
       ]
     });
 

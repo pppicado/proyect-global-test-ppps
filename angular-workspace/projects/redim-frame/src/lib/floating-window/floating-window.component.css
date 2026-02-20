@@ -12,8 +12,6 @@
     position: relative;
     user-select: none;
     pointer-events: auto;
-    left: var(--left);
-    top: var(--top);
 }
 
 .resize-handle {

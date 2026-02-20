@@ -1,5 +1,6 @@
 import { Component, Inject, Optional, ElementRef, AfterViewInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { WINDOW_DATA } from '@pppicado/redim-frame';
+import { WINDOW_DATA, FloatingWindowComponent } from '@pppicado/redim-frame';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-chart',
@@ -9,10 +10,11 @@ import { WINDOW_DATA } from '@pppicado/redim-frame';
 export class ChartComponent implements AfterViewInit, OnDestroy {
   public windowWidth: string = '';
   public windowHeight: string = '';
-  private mutationObserver: MutationObserver | null = null;
+  private sizeSub?: Subscription;
 
   constructor(
     @Optional() @Inject(WINDOW_DATA) public data: any,
+    @Optional() private floatingWindow: FloatingWindowComponent,
     private el: ElementRef,
     private cdr: ChangeDetectorRef
   ) { }
@@ -20,28 +22,30 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.updateDimensions();
 
-    this.updateDimensions();
-
-    this.mutationObserver = new MutationObserver(() => {
-      this.updateDimensions();
-    });
-
-    const hostElement = this.el.nativeElement.closest('.window-container');
-    if (hostElement) {
-      this.mutationObserver.observe(hostElement, { attributes: true, attributeFilter: ['style'] });
+    if (this.floatingWindow) {
+      this.sizeSub = this.floatingWindow.sizeChange.subscribe(() => {
+        this.updateDimensions();
+      });
     }
   }
 
   ngOnDestroy() {
-    if (this.mutationObserver) {
-      this.mutationObserver.disconnect();
+    if (this.sizeSub) {
+      this.sizeSub.unsubscribe();
     }
   }
 
   private updateDimensions() {
-    const computedStyle = getComputedStyle(this.el.nativeElement);
-    this.windowWidth = computedStyle.getPropertyValue('--window-width').trim();
-    this.windowHeight = computedStyle.getPropertyValue('--window-height').trim();
-    this.cdr.detectChanges();
+    const hostElement = this.el.nativeElement.closest('.window-container') as HTMLElement;
+    if (hostElement) {
+      const newWidth = hostElement.style.getPropertyValue('--window-width').trim();
+      const newHeight = hostElement.style.getPropertyValue('--window-height').trim();
+
+      if (this.windowWidth !== newWidth || this.windowHeight !== newHeight) {
+        this.windowWidth = newWidth;
+        this.windowHeight = newHeight;
+        this.cdr.detectChanges();
+      }
+    }
   }
 }

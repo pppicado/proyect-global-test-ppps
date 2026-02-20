@@ -1,5 +1,5 @@
 import { Component, EventEmitter, HostBinding, Input, Output, Renderer2, OnDestroy, AfterViewInit, OnInit } from '@angular/core';
-import { CdkDragEnd, CdkDragStart } from '@angular/cdk/drag-drop';
+import { CdkDragEnd, CdkDragStart, CdkDrag } from '@angular/cdk/drag-drop';
 import { Portal } from '@angular/cdk/portal';
 
 @Component({
@@ -14,7 +14,6 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() y: number = 10; // Default 10vh
   @Input() zIndex: number = 1000;
   @Input() contentPortal: Portal<any> | null = null;
-
   @Output() close = new EventEmitter<void>();
   @Output() focus = new EventEmitter<void>();
   @Output() sizeChange = new EventEmitter<{ width: number, height: number }>();
@@ -35,7 +34,10 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   @HostBinding('style.--z-index') get zIndexStyle() { return this.zIndex; }
 
   get dragPositionPixels() {
-    return { x: 0, y: 0 };
+    return {
+      x: (this.x * window.innerWidth) / 100,
+      y: (this.y * window.innerHeight) / 100
+    };
   }
 
   private isResizing: boolean = false;
@@ -49,10 +51,12 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
 
   private mouseMoveListener: Function | null = null;
   private mouseUpListener: Function | null = null;
+  private windowResizeListener: Function | null = null;
 
   constructor(private renderer: Renderer2) { }
 
   ngOnInit() {
+    this.windowResizeListener = this.renderer.listen('window', 'resize', () => this.onWindowResize());
   }
 
   ngAfterViewInit() {
@@ -60,7 +64,20 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
 
   ngOnDestroy() {
     this.removeResizeListeners();
+    if (this.windowResizeListener) {
+      this.windowResizeListener();
+    }
   }
+
+  onWindowResize() {
+    // Force angular to trigger the getter for dragPositionPixels by emitting a dummy 
+    // event or manually forcing change detection if needed. But specifically, cdkDrag 
+    // needs to re-read [cdkDragFreeDragPosition]. Since it's bound to a getter, 
+    // it normally detects object reference changes. 
+    // A simple hack is to just let Angular's CD cycle run, but the getter returns a NEW object every time.
+    // So on resize, Angular will see the position object changed and update the transform.
+  }
+
 
   onDragStart(event: CdkDragStart) {
     this.focus.emit();
@@ -73,7 +90,6 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
     const scrollY = window.scrollY || window.pageYOffset;
     this.x = ((rect.left + scrollX) / window.innerWidth) * 100;
     this.y = ((rect.top + scrollY) / window.innerHeight) * 100;
-    event.source.reset();
   }
 
   onWindowClick() {
