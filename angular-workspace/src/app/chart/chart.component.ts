@@ -9,7 +9,7 @@ import { WINDOW_DATA } from '@pppicado/redim-frame';
 export class ChartComponent implements AfterViewInit, OnDestroy {
   public windowWidth: string = '';
   public windowHeight: string = '';
-  private resizeObserver: ResizeObserver | null = null;
+  private mutationObserver: MutationObserver | null = null;
 
   constructor(
     @Optional() @Inject(WINDOW_DATA) public data: any,
@@ -20,16 +20,21 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.updateDimensions();
 
-    this.resizeObserver = new ResizeObserver(() => {
+    this.updateDimensions();
+
+    this.mutationObserver = new MutationObserver(() => {
       this.updateDimensions();
     });
 
-    this.resizeObserver.observe(this.el.nativeElement);
+    const hostElement = this.el.nativeElement.closest('.window-container');
+    if (hostElement) {
+      this.mutationObserver.observe(hostElement, { attributes: true, attributeFilter: ['style'] });
+    }
   }
 
   ngOnDestroy() {
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
     }
   }
 

@@ -35,10 +35,7 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   @HostBinding('style.--z-index') get zIndexStyle() { return this.zIndex; }
 
   get dragPositionPixels() {
-    return {
-      x: (this.x * window.innerWidth) / 100,
-      y: (this.y * window.innerHeight) / 100
-    };
+    return { x: 0, y: 0 };
   }
 
   private isResizing: boolean = false;
@@ -76,6 +73,7 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
     const scrollY = window.scrollY || window.pageYOffset;
     this.x = ((rect.left + scrollX) / window.innerWidth) * 100;
     this.y = ((rect.top + scrollY) / window.innerHeight) * 100;
+    event.source.reset();
   }
 
   onWindowClick() {
