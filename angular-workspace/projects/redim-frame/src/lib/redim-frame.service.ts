@@ -17,7 +17,7 @@ export interface FloatingWindowConfig {
 @Injectable({
   providedIn: 'root'
 })
-export class FloatingWindowService {
+export class RedimFrameService {
   private zIndexCounter = 1000;
 
   constructor(private overlay: Overlay, private injector: Injector) { }
@@ -44,6 +44,7 @@ export class FloatingWindowService {
     windowInstance.x = config.x || 10;
     windowInstance.y = config.y || 10;
     windowInstance.zIndex = this.zIndexCounter++;
+    windowInstance.windowData = config.data;
 
     // Create Injector for user component data
     const injector = Injector.create({
@@ -67,16 +68,20 @@ export class FloatingWindowService {
     windowInstance.contentPortal = userPortal;
 
     // Handle Close
-    windowInstance.close.subscribe(() => {
-      overlayRef.dispose();
+    windowInstance.change.subscribe((event) => {
+      if (event.close) {
+        overlayRef.dispose();
+      }
     });
 
     // Handle Focus (Z-Index)
-    windowInstance.focus.subscribe(() => {
-      this.zIndexCounter++;
-      windowInstance.zIndex = this.zIndexCounter;
-      if (overlayRef.hostElement) {
-        overlayRef.hostElement.style.zIndex = `${this.zIndexCounter}`;
+    windowInstance.change.subscribe((event) => {
+      if (event.focus) {
+        this.zIndexCounter++;
+        windowInstance.zIndex = this.zIndexCounter;
+        if (overlayRef.hostElement) {
+          overlayRef.hostElement.style.zIndex = `${this.zIndexCounter}`;
+        }
       }
     });
 

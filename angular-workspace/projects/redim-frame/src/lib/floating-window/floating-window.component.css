@@ -82,7 +82,11 @@
     left: var(--resizeBorder);
     right: var(--resizeBorder);
     height: var(--resizeBorder);
-    cursor: n-resize;
+    cursor: move;
+}
+
+.resize-handle-n:active {
+    cursor: grabbing;
 }
 
 .resize-handle-ne {

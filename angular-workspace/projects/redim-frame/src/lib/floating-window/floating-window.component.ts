@@ -1,6 +1,6 @@
-import { Component, EventEmitter, HostBinding, Input, Output, Renderer2, OnDestroy, AfterViewInit, OnInit } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output, Renderer2, OnDestroy, AfterViewInit, OnInit, ComponentRef } from '@angular/core';
 import { CdkDragEnd, CdkDragStart, CdkDrag } from '@angular/cdk/drag-drop';
-import { Portal } from '@angular/cdk/portal';
+import { Portal, CdkPortalOutletAttachedRef } from '@angular/cdk/portal';
 
 @Component({
   selector: 'lib-floating-window',
@@ -14,9 +14,7 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() y: number = 10; // Default 10vh
   @Input() zIndex: number = 1000;
   @Input() contentPortal: Portal<any> | null = null;
-  @Output() close = new EventEmitter<void>();
-  @Output() focus = new EventEmitter<void>();
-  @Output() sizeChange = new EventEmitter<{ width: number, height: number }>();
+  @Input() windowData: any = null;
 
   @Input() resizeBorder: number = 0.5; // Default 0.5vw
   @Input() minWidth: number = 10; // Default 10vw
@@ -24,6 +22,8 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
 
   @Input() scrollIcon: string = ''; // 'https://png.pngtree.com/png-clipart/20250116/original/pngtree-beautiful-amber-stone-featuring-unique-translucent-textures-png-image_20234893.png'
   @Input() scrollThumbSize: number = 2; // Default 2vw
+
+  @Output() change = new EventEmitter<{ width?: number, height?: number, x?: number, y?: number, focus?: boolean, close?: boolean }>();
 
   @HostBinding('style.--resizeBorder') resizeBorderStyle: string = this.resizeBorder + 'vw';
 
@@ -78,9 +78,16 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
     // So on resize, Angular will see the position object changed and update the transform.
   }
 
+  onPortalAttached(ref: CdkPortalOutletAttachedRef) {
+    if (ref instanceof ComponentRef && this.windowData) {
+      Object.keys(this.windowData).forEach(key => {
+        ref.setInput(key, this.windowData[key]);
+      });
+    }
+  }
 
   onDragStart(event: CdkDragStart) {
-    this.focus.emit();
+    this.change.emit({ focus: true });
   }
 
   onDragEnd(event: CdkDragEnd) {
@@ -93,11 +100,11 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   onWindowClick() {
-    this.focus.emit();
+    this.change.emit({ focus: true });
   }
 
   closeWindow() {
-    this.close.emit();
+    this.change.emit({ close: true });
   }
 
   // Resizing logic
@@ -114,7 +121,7 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
     this.startXWindow = this.x;
     this.startYWindow = this.y;
 
-    this.focus.emit();
+    this.change.emit({ focus: true });
 
     this.mouseMoveListener = this.renderer.listen('document', 'mousemove', (e) => this.onResize(e));
     this.mouseUpListener = this.renderer.listen('document', 'mouseup', () => this.stopResize());
@@ -145,7 +152,7 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
           break;
       }
     }
-    this.sizeChange.emit({ width: this.width, height: this.height });
+    this.change.emit({ width: this.width, height: this.height });
   }
 
   stopResize() {

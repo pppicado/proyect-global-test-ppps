@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, Inject, Optional } from '@angular/core';
+import { WINDOW_DATA } from '@pppicado/redim-frame';
 
 @Component({
   selector: 'app-form',
@@ -6,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./form.component.css']
 })
 export class FormComponent {
-
+  constructor(@Optional() @Inject(WINDOW_DATA) public data: any) { }
 }

@@ -50,16 +50,16 @@ export class AppModule { }
 
 ## Usage
 
-Inject `FloatingWindowService` to open windows dynamically.
+Inject `RedimFrameService` to open windows dynamically.
 
 ```typescript
 import { Component } from '@angular/core';
-import { FloatingWindowService } from 'redim-windows';
+import { RedimFrameService } from 'redim-windows';
 import { MyComponent } from './my-component/my-component.component';
 
 @Component({ ... })
 export class AppComponent {
-  constructor(private windowService: FloatingWindowService) {}
+  constructor(private windowService: RedimFrameService) {}
 
   openWindow() {
     this.windowService.open(MyComponent, {
@@ -104,7 +104,7 @@ The window container automatically sets CSS variables `--window-width` and `--wi
 
 ## API
 
-### `FloatingWindowService`
+### `RedimFrameService`
 
 - `open<T>(componentOrTemplate: Type<T> | TemplateRef<T>, config?: FloatingWindowConfig): ComponentRef<FloatingWindowComponent>`
 

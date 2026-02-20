@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FloatingWindowService } from '@pppicado/redim-frame';
+import { RedimFrameService } from '@pppicado/redim-frame';
 import { ChartComponent } from './chart/chart.component';
 import { FormComponent } from './form/form.component';
 import { _exe_, datChangeObj, Reaction, stateAmbitReaction, typeChange } from '@pppicado/structexe';
@@ -15,7 +15,7 @@ export class AppComponent {
   title = 'angular-workspace';
   store: any;
 
-  constructor(private floatingWindowService: FloatingWindowService) {
+  constructor(private floatingWindowService: RedimFrameService) {
 
     let test: string = 'reactive-proxy' // structexe
 
@@ -263,7 +263,8 @@ export class AppComponent {
       width: 40,
       height: 30,
       x: 30,
-      y: 20
+      y: 20,
+      data: { email: 'x@ejemplo.com' }
     });
   }
 }

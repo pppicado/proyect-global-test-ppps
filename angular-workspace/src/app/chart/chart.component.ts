@@ -1,4 +1,4 @@
-import { Component, Inject, Optional, ElementRef, AfterViewInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, Inject, Optional, ElementRef, AfterViewInit, OnDestroy, ChangeDetectorRef, Input } from '@angular/core';
 import { WINDOW_DATA, FloatingWindowComponent } from '@pppicado/redim-frame';
 import { Subscription } from 'rxjs';
 
@@ -8,12 +8,14 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./chart.component.css']
 })
 export class ChartComponent implements AfterViewInit, OnDestroy {
+  @Input() data: any;
+
   public windowWidth: string = '';
   public windowHeight: string = '';
   private sizeSub?: Subscription;
 
   constructor(
-    @Optional() @Inject(WINDOW_DATA) public data: any,
+    @Optional() @Inject(WINDOW_DATA) public injectedData: any,
     @Optional() private floatingWindow: FloatingWindowComponent,
     private el: ElementRef,
     private cdr: ChangeDetectorRef
@@ -23,8 +25,10 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
     this.updateDimensions();
 
     if (this.floatingWindow) {
-      this.sizeSub = this.floatingWindow.sizeChange.subscribe(() => {
-        this.updateDimensions();
+      this.sizeSub = this.floatingWindow.change.subscribe((event) => {
+        if (event.width || event.height) {
+          this.updateDimensions();
+        }
       });
     }
   }

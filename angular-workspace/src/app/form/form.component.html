@@ -2,7 +2,8 @@
   <h3>Form Component</h3>
   <div class="mb-3">
     <label for="exampleInputEmail1" class="form-label">Email address</label>
-    <input type="email" class="form-control" id="exampleInputEmail1" placeholder="name@example.com">
+    <input type="email" class="form-control" id="exampleInputEmail1" [value]="data?.email || ''"
+      placeholder="name@example.com">
   </div>
   <div class="mb-3">
     <label for="exampleFormControlTextarea1" class="form-label">Example textarea</label>
