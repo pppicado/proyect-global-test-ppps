@@ -1,0 +1,36 @@
+{
+    "name": "@pppicado/reactive-proxy",
+    "version": "2.0.0",
+    "description": "ReactiveProxy Library - Albacete Edition",
+    "author": "Pedro Pablo Picado Sánchez",
+    "license": "MIT",
+    "main": "./cjs/index.js",
+    "module": "./esm/index.js",
+    "types": "./types/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./types/index.d.ts",
+            "import": "./esm/index.js",
+            "require": "./cjs/index.js",
+            "default": "./esm/index.js"
+        }
+    },
+    "files": [
+        "esm",
+        "cjs",
+        "types",
+        "README.md"
+    ],
+    "keywords": [
+        "proxy",
+        "reactive",
+        "state",
+        "typescript",
+        "albacete"
+    ],
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "sideEffects": false
+}

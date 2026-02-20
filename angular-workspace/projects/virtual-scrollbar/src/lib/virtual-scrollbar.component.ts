@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, ViewChild, AfterViewInit, OnDestroy, Renderer2, HostListener } from '@angular/core';
+import { Component, ElementRef, Input, ViewChild, AfterViewInit, OnDestroy, Renderer2, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CdkDragMove, CdkDragStart, CdkDragEnd } from '@angular/cdk/drag-drop';
 
 @Component({
@@ -19,10 +19,13 @@ export class VirtualScrollbarComponent implements AfterViewInit, OnDestroy {
     isDraggingVertical = false;
     isDraggingHorizontal = false;
 
+    showVertical = false;
+    showHorizontal = false;
+
     private scrollListener: Function | null = null;
     private resizeObserver: ResizeObserver | null = null;
 
-    constructor(private renderer: Renderer2) { }
+    constructor(private renderer: Renderer2, private cdr: ChangeDetectorRef) { }
 
     ngAfterViewInit() {
         this.scrollListener = this.renderer.listen(this.scrollContainer.nativeElement, 'scroll', () => {
@@ -58,32 +61,32 @@ export class VirtualScrollbarComponent implements AfterViewInit, OnDestroy {
         const thumbSizePx = (thumbSizeVw * window.innerWidth) / 100;
 
         // Vertical Scrollbar
-        if (!this.isDraggingVertical) {
-            const scrollHeight = el.scrollHeight;
-            const clientHeight = el.clientHeight;
-            const scrollTop = el.scrollTop;
+        const scrollHeight = el.scrollHeight;
+        const clientHeight = el.clientHeight;
+        this.showVertical = scrollHeight > clientHeight;
 
-            if (scrollHeight > clientHeight) {
-                const maxScrollTop = scrollHeight - clientHeight;
-                const maxThumbTop = clientHeight - thumbSizePx;
-                const scrollRatio = scrollTop / maxScrollTop;
-                this.verticalThumbPos = { x: 0, y: scrollRatio * maxThumbTop };
-            }
+        if (!this.isDraggingVertical && this.showVertical) {
+            const scrollTop = el.scrollTop;
+            const maxScrollTop = scrollHeight - clientHeight;
+            const maxThumbTop = clientHeight - thumbSizePx;
+            const scrollRatio = scrollTop / maxScrollTop;
+            this.verticalThumbPos = { x: 0, y: scrollRatio * maxThumbTop };
         }
 
         // Horizontal Scrollbar
-        if (!this.isDraggingHorizontal) {
-            const scrollWidth = el.scrollWidth;
-            const clientWidth = el.clientWidth;
-            const scrollLeft = el.scrollLeft;
+        const scrollWidth = el.scrollWidth;
+        const clientWidth = el.clientWidth;
+        this.showHorizontal = scrollWidth > clientWidth;
 
-            if (scrollWidth > clientWidth) {
-                const maxScrollLeft = scrollWidth - clientWidth;
-                const maxThumbLeft = clientWidth - thumbSizePx;
-                const scrollRatio = scrollLeft / maxScrollLeft;
-                this.horizontalThumbPos = { x: scrollRatio * maxThumbLeft, y: 0 };
-            }
+        if (!this.isDraggingHorizontal && this.showHorizontal) {
+            const scrollLeft = el.scrollLeft;
+            const maxScrollLeft = scrollWidth - clientWidth;
+            const maxThumbLeft = clientWidth - thumbSizePx;
+            const scrollRatio = scrollLeft / maxScrollLeft;
+            this.horizontalThumbPos = { x: scrollRatio * maxThumbLeft, y: 0 };
         }
+
+        this.cdr.detectChanges();
     }
 
     onVerticalDragStart(event: CdkDragStart) {
@@ -135,14 +138,4 @@ export class VirtualScrollbarComponent implements AfterViewInit, OnDestroy {
         }
     }
 
-    // Helper to check if scroll is needed
-    get showVertical() {
-        if (!this.scrollContainer) return false;
-        return this.scrollContainer.nativeElement.scrollHeight > this.scrollContainer.nativeElement.clientHeight;
-    }
-
-    get showHorizontal() {
-        if (!this.scrollContainer) return false;
-        return this.scrollContainer.nativeElement.scrollWidth > this.scrollContainer.nativeElement.clientWidth;
-    }
 }
