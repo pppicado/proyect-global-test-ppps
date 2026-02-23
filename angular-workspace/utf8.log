@@ -1,0 +1,63 @@
+﻿=== STRUCTEXE TEST SUITE ===
+
+Test 1: Initialization & Proxies
+node.exe : C:\proyect-global-test-ppps\
+angular-workspace\projects\structexe\sr
+c\inernalUtils.ts:303
+En C:\Program Files\nodejs\npx.ps1: 29 
+Carácter: 3
++   & $NODE_EXE $NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpeci 
+   fied: (C:\proyect-glob...nalUtils.  
+  ts:303:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCo 
+   mmandError
+ 
+    return (TypeStruct_exe_ as 
+any)[internal_exe_property]
+            ^
+
+
+TypeError: Cannot read properties of 
+undefined (reading 
+'Symbol(internal_exe_property)')
+    at Function.get_exe_ (C:\proyect-gl
+obal-test-ppps\angular-workspace\projec
+ts\structexe\src\inernalUtils.ts:303:13
+)
+    at _exe_.route.transformValue.trans
+formValue (C:\proyect-global-test-ppps\
+angular-workspace\projects\structexe\sr
+c\structexe.ts:108:69)
+    at Function.route (C:\proyect-globa
+l-test-ppps\angular-workspace\projects\
+structexe\src\structexe.ts:219:45)
+    at Function.set (C:\proyect-global-
+test-ppps\angular-workspace\projects\st
+ructexe\src\structexe.ts:107:11)
+    at 
+ManagementHierarchicalDataObj.set (C:\p
+royect-global-test-ppps\angular-workspa
+ce\projects\structexe\src\structexe.ts:
+439:19)
+    at Proxy.value (C:\proyect-global-t
+est-ppps\angular-workspace\projects\str
+uctexe\src\inernalUtils.ts:413:51)
+    at Function.getByStr (C:\proyect-gl
+obal-test-ppps\angular-workspace\projec
+ts\structexe\src\inernalUtils.ts:192:99
+)
+    at Function.export (C:\proyect-glob
+al-test-ppps\angular-workspace\projects
+\structexe\src\structexe.ts:274:67)
+    at Function.setProperty_strict (C:\
+proyect-global-test-ppps\angular-worksp
+ace\projects\structexe\src\inernalUtils
+.ts:108:26)
+    at Function.newProxy (C:\proyect-gl
+obal-test-ppps\angular-workspace\projec
+ts\structexe\src\inernalUtils.ts:656:27
+)
+
+Node.js v22.17.1

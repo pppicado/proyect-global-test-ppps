@@ -14,6 +14,9 @@ export type TypeStruct_exe_<T> =
   T extends object ? { [K in keyof T]: TypeStruct_exe_<T[K]> } & _exe_Property
   : T & _exe_Property;
 
+
+type JSONPrimitive = string | number | boolean | null;
+type JSONValue = JSONPrimitive | JSONObject | JSONArray;
 export type ActionChange = (change: datChangeObj) => void
 export type OptionalParams<T> = Partial<T> | undefined;
 export enum typeChange { 'create', 'seter', 'change', 'geter', 'delete' }
@@ -45,6 +48,55 @@ export const processingTypeSet = new Map<string, processingType>([
   ['bigint', processingType.primitiveData],
 ])
 
+interface JSONObject { [key: string]: JSONValue }
+interface JSONArray extends Array<JSONValue> {}
+
+/**
+ * Clases especializadas para envolver primitivas respetando su naturaleza
+ */
+export class String_ extends String {
+  constructor(public value: string) { super(value); }
+  override valueOf() { return this.value; }
+  override toString() { return String(this.value); }
+  toJSON() { return this.value; }
+}
+export class Number_ extends Number {
+  constructor(public value: number) { super(value); }
+  override valueOf() { return this.value; }
+  override toString() { return String(this.value); }
+  toJSON() { return this.value; }
+}
+export class Boolean_ extends Boolean {
+  constructor(public value: boolean) { super(value); }
+  override valueOf() { return this.value; }
+  override toString() { return String(this.value); }
+  toJSON() { return this.value; }
+}
+export class Date_ extends Date {
+  constructor(public value: any) { super(value); }
+  override valueOf() { return this.value.valueOf(); }
+  override toString() { return this.value.toString(); }
+  override toJSON() { return this.value.toJSON ? this.value.toJSON() : this.value; }
+}
+export class Symbol_ {
+  constructor(public value: any) { }
+  valueOf() { return this.value; }
+  toString() { return String(this.value); }
+  toJSON() { return this.value; }
+}
+export class BigInt_ {
+  constructor(public value: any) { }
+  valueOf() { return this.value; }
+  toString() { return String(this.value); }
+  toJSON() { return this.value; }
+}
+export class Primitive_ {
+  constructor(public value: any) { }
+  valueOf() { return this.value; }
+  toString() { return String(this.value); }
+  toJSON() { return this.value; }
+}
+
 export class InternalUtils {
   constructor() { }
 
@@ -54,18 +106,6 @@ export class InternalUtils {
    * @returns {string} Devuelve el nombre de la propiedad internal_exe_property.
    */
   static get name_simbol_internal_exe_property() { return internal_exe_property }
-
-  /**
-   * *************************************************************************** 
-   * @method get_exe_ Método que obtiene la instancia de gestor _exe_ de un objeto.
-   * @param target Objeto del cual obtener la instancia de gestor _exe_.
-   * @returns {ManagementHierarchicalData} Devuelve la instancia de gestor _exe_.
-   * @throws Error si el objeto no es gestionado por _exe_.
-   */
-  static get_exe_(target: any): ManagementHierarchicalData {
-    if (!_exe_.be(target)) throw new Error("El objeto no es gestionado por _exe_.")
-    return target[internal_exe_property]
-  }
 
   /**
    * @method ghostSet (USO INTERNO) Asigna un valor a una propiedad de una instancia de TypeStruct_exe_ sin lanzar reacciones.
@@ -117,6 +157,65 @@ export class InternalUtils {
 
     typeValue = _exe_.intenal_utils.gestType(value)
     typeTarget = _exe_.intenal_utils.gestType(target)
+
+    let managementThisArg = _exe_.intenal_utils.get_exe_(thisArg);
+
+    // 1. Manejo de Primitivos
+    if (typeValue === processingType.primitiveData || typeValue === processingType.unset || typeValue === processingType.function) {
+      if (_exe_.be(target) && 'value' in _exe_.intenal_utils.get_exe_(target).structObj) {
+        let internalObj = _exe_.intenal_utils.get_exe_(target).structObj;
+        internalObj.value = value;
+        transformedValue = target;
+      } else {
+        let box: any;
+        if (value === null || value === undefined) box = new Primitive_(value);
+        else {
+          switch (typeof value) {
+            case 'string': box = new String_(value); break;
+            case 'number': box = new Number_(value); break;
+            case 'boolean': box = new Boolean_(value); break;
+            case 'symbol': box = new Symbol_(value); break;
+            case 'bigint': box = new BigInt_(value); break;
+            case 'function': box = new Primitive_(value); break;
+            default:
+              if (value instanceof Date) box = new Date_(value);
+              else box = new Primitive_(value);
+              break;
+          }
+        }
+        transformedValue = _exe_.intenal_utils.newProxy(box, typeValue, thisArg, property);
+        propertyCreated = (target === undefined);
+      }
+    }
+    // 2. Manejo de Estructuras Complejas
+    else if (!(_exe_.be(value) && 'value' in _exe_.intenal_utils.get_exe_(value).structObj)) {
+      transformedValue = _exe_.intenal_utils.newProxy(value, typeValue, thisArg, property);
+      propertyCreated = (target === undefined);
+    }
+    else {
+      transformedValue = value;
+    }
+
+    // 3. Asignación Real
+    let rawTarget = managementThisArg.structObj;
+    if (managementThisArg.processingType === processingType.map) {
+      (rawTarget as Map<any, any>).set(property, transformedValue);
+    } else if (managementThisArg.processingType === processingType.set) {
+      (rawTarget as Set<any>).add(transformedValue);
+    } else {
+      rawTarget[property] = transformedValue;
+    }
+
+    // 4. Notificación de Cambio
+    let pathSeparador = (managementThisArg.processingType === processingType.array || managementThisArg.processingType === processingType.map || managementThisArg.processingType === processingType.set) ? '[' + property + ']' : '|' + property;
+
+    managementThisArg.rootManagement.callReact(new datChangeObj({
+      ruta: managementThisArg.path + pathSeparador,
+      hito: propertyCreated ? typeChange.create : typeChange.seter,
+      ambito: stateAmbitReaction.local,
+      datoNuevo: transformedValue,
+      datoActual: oldValue
+    }));
 
     return transformedValue as TypeStruct_exe_<T>
   }
@@ -203,6 +302,7 @@ export class InternalUtils {
 
     let detailed: string
 
+    if (valueTest === null) return "null";
     switch (typeof valueTest) {
       case 'string': detailed = "string"; break;
       case 'number': detailed = "number"; break;
@@ -214,14 +314,23 @@ export class InternalUtils {
       case 'object': detailed = "object"; break;
     }
     if (detailed == "object") {
+      if (_exe_.be(valueTest) && 'value' in _exe_.intenal_utils.get_exe_(valueTest).structObj) {
+        return _exe_.intenal_utils.gestTypeDetailed(_exe_.intenal_utils.get_exe_(valueTest).structObj.value);
+      }
       switch (valueTest.constructor.name) {
-        case "Boolean": detailed = "boolean"; break;
-        case "Number": detailed = "number"; break;
-        case "BigInt": detailed = "bigint"; break;
-        case "String": detailed = "string"; break;
-        case "Symbol": detailed = "symbol"; break;
+        case "Boolean":
+        case "Boolean_": detailed = "boolean"; break;
+        case "Number":
+        case "Number_": detailed = "number"; break;
+        case "BigInt":
+        case "BigInt_": detailed = "bigint"; break;
+        case "String":
+        case "String_": detailed = "string"; break;
+        case "Symbol":
+        case "Symbol_": detailed = "symbol"; break;
         case "RegExp": detailed = "regexp"; break;
-        case 'Date': detailed = "date"; break;
+        case 'Date':
+        case 'Date_': detailed = "date"; break;
         case "WeakMap": detailed = "weakMap"; break;
         case "WeakSet": detailed = "weakSet"; break;
         case "Map": detailed = "map"; break;
@@ -236,14 +345,131 @@ export class InternalUtils {
 
   /**
    * *************************************************************************** 
-   * @method Data_exe_ Metodo que Mixeará el typo del objeto recibido en Obj con _exe_Property.
-   * @param obj Objeto to typer.
-   * @returns {TypeStruct_exe_<T>} debuelve la instancia con la propiedad definida. 
-   * @see _exe_Property
-   * @see TypeStruct_exe_
+   * @method get_exe_ Metodo que devolverá los datos de gestion de la instancia.
+   * @param TypeStruct_exe_ Instancia The wich to obtain the gestion data.
+   * @returns {managementHierarchicalData} The gestion data of the instance.
    */
-  static typeAs_Data_exe_<T>(obj: T): TypeStruct_exe_<T> {
-    return obj as unknown as TypeStruct_exe_<T>
+  static get_exe_(TypeStruct_exe_: TypeStruct_exe_<any>): ManagementHierarchicalData {
+    return TypeStruct_exe_ ? (TypeStruct_exe_ as any)[internal_exe_property] : undefined;
+  }
+
+  /**
+   *  *************************************************************************** 
+   * @method export Metodo que devolverá un valor de una instancia eliminando sus proxys.
+   * @param TypeStruct_exe_ Instancia de la que quieremos exportar el contenido.
+   * @param property Parámetro opcional. Propiedar a extrarer del objeto. 
+   * @returns {any} Devuelve el valor natural perdiendo las propiedades reactivas y la metadata
+   */
+  static export(TypeStruct_exe_: TypeStruct_exe_<any>, property?: string): any {
+    if (_exe_.be(TypeStruct_exe_) && 'value' in (TypeStruct_exe_ as any)[internal_exe_property].structObj) {
+      return (TypeStruct_exe_ as any)[internal_exe_property].structObj.value;
+    }
+    let target = (property) ? (TypeStruct_exe_ as any)[property] : TypeStruct_exe_;
+    if (_exe_.be(target) && 'value' in (target as any)[internal_exe_property].structObj) {
+      return (target as any)[internal_exe_property].structObj.value;
+    }
+    return target
+  }
+
+  /**
+   * *************************************************************************** 
+   * @method stringify Permite serializar cualquier instancia de forma determinista ,segura y evitando los ciclos.
+   * @param input Instancia a serializar.
+   * @param space Parámetro opcional. Indica el espacio de indentación.
+   * @returns {string} Devuelve el string serializado del objeto.
+   */
+  static stringify<T>(input: T, space?: number): string {
+    const seen = new WeakMap<object, string>();
+
+    const unwrapPrimitiveWrapper = (value: any): any => {
+
+      // === WRAPPERS PERSONALIZADOS ===
+      if (
+        value instanceof String_ ||
+        value instanceof Number_ ||
+        value instanceof Boolean_ ||
+        value instanceof Date_ ||
+        value instanceof Symbol_ ||
+        value instanceof BigInt_ ||
+        value instanceof Primitive_
+      ) {
+        return value.valueOf();
+      }
+
+      // === WRAPPERS NATIVOS JS ===
+      if (
+        value instanceof String ||
+        value instanceof Number ||
+        value instanceof Boolean
+      ) {
+        return value.valueOf();
+      }
+
+      return value;
+    };
+
+    const normalize = (value: any, path: string): JSONValue => {
+
+      value = unwrapPrimitiveWrapper(value);
+
+      // === PRIMITIVOS REALES ===
+      if (
+        value === null ||
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean'
+      ) {
+        return value;
+      }
+
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+
+      if (typeof value === 'symbol') {
+        return value.toString();
+      }
+
+      if (
+        typeof value === 'undefined' ||
+        typeof value === 'function'
+      ) {
+        return null;
+      }
+
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+
+      if (Array.isArray(value)) {
+        return value.map((v, i) => normalize(v, `${path}[${i}]`));
+      }
+
+      if (typeof value === 'object') {
+
+        if (seen.has(value)) {
+          return `[Circular → ${seen.get(value)}]`;
+        }
+
+        seen.set(value, path);
+
+        const obj: JSONObject = {};
+        const keys = Object.keys(value).sort();
+
+        for (const key of keys) {
+          const normalized = normalize(value[key], `${path}.${key}`);
+          if (normalized !== null || value[key] === null) {
+            obj[key] = normalized;
+          }
+        }
+
+        return obj;
+      }
+
+      return null;
+    };
+
+    return JSON.stringify(normalize(input, '$'), null, space);
   }
 
   /**
@@ -259,6 +485,24 @@ export class InternalUtils {
     let managementHierarchicalData = new ManagementHierarchicalDataObj({ processingType: type }) as ManagementHierarchicalData
     managementHierarchicalData.structObj = thisArg
     switch (type) {
+      case processingType.primitiveData:
+      case processingType.unset:
+      case processingType.function: {
+        managementHierarchicalData.proxyObj = new Proxy((thisArg as unknown as object), {
+          get(target: object, property: string | symbol, receiver: any) {
+            if (property === internal_exe_property || property === string_exe_property) return managementHierarchicalData as ManagementHierarchicalData;
+            return Reflect.get(target, property, receiver);
+          },
+          set(target: object, property: string, val: any, receiver: any) {
+            return Reflect.set(target, property, val, receiver);
+          },
+          has(target, property) {
+            if (property === internal_exe_property || property === string_exe_property) return true;
+            return Reflect.has(target, property);
+          }
+        }) as any;
+        break;
+      }
       case processingType.array:
       case processingType.object: {
         managementHierarchicalData.proxyObj = new Proxy((thisArg as unknown as object), {
@@ -274,7 +518,7 @@ export class InternalUtils {
           },
           get(target: object, property: string | symbol, receiver: any) {
             if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            if (property == '_exe_' && !('_exe_' in target)) {
+            if (property === string_exe_property && !(string_exe_property in target)) {
               return managementHierarchicalData as ManagementHierarchicalData
             } else {
               let value = Reflect.get(target, property, receiver)
@@ -292,7 +536,7 @@ export class InternalUtils {
 
           },
           has(target, property) {
-            if (property == internal_exe_property) return true
+            if (property === internal_exe_property || property === string_exe_property) return true
             return Reflect.has(target, property)
           },
         } as ProxyHandler<Object>) as TypeStruct_exe_<any>
@@ -331,11 +575,16 @@ export class InternalUtils {
           get(target: object, property: string | symbol, receiver: any) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
             if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
+            var receiverSafe = ((target instanceof Set) || (target instanceof Map)) ? target : receiver;
+            var value = (property === string_exe_property && !(string_exe_property in target)) ? management_exe_ : Reflect.get(target, property, receiverSafe);
             if (typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) {
-              if (property in ['set', 'add']) {
+              if (property === 'set' || property === 'add') {
                 value = function (propertyKey: any, propertyValue: any) {
-                  propertyValue = management_exe_.set(propertyKey, propertyValue)
+                  if (property === 'add') {
+                    management_exe_.set(propertyKey?.toString() ?? 'null', propertyKey)
+                  } else {
+                    management_exe_.set(propertyKey, propertyValue)
+                  }
                   return management_exe_.proxyObj
                 }
               } else value = value.bind(target)
@@ -351,7 +600,7 @@ export class InternalUtils {
             return value;
           },
           has(target, property) {
-            if (property == internal_exe_property) return true
+            if (property === internal_exe_property || property === string_exe_property) return true
             return Reflect.has(target, property)
           },
         } as ProxyHandler<Object>) as TypeStruct_exe_<any>
@@ -362,7 +611,7 @@ export class InternalUtils {
           get(target: object, property: string | symbol, receiver: any) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
             if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
+            var value = (property === string_exe_property && !(string_exe_property in target)) ? management_exe_ : Reflect.get(target, property, receiver);
             if (typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) {
               let valueBound = value.bind(target)
               value = function (propertyKey: any, propertyValue: any) {
@@ -372,7 +621,7 @@ export class InternalUtils {
             return value;
           },
           has(target, property) {
-            if (property == internal_exe_property) return true
+            if (property === internal_exe_property || property === string_exe_property) return true
             return Reflect.has(target, property)
           },
         } as ProxyHandler<Object>) as any
@@ -412,21 +661,33 @@ export class InternalUtils {
           get(target: object, property: string | symbol, receiver: any) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
             if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
+            var receiverSafe = ((target instanceof Set) || (target instanceof Map)) ? target : receiver;
+            var value = (property === string_exe_property && !(string_exe_property in target)) ? management_exe_ : Reflect.get(target, property, receiverSafe);
             if (typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) {
               if (property === 'set' || property === 'add') {
                 let valueBound = value.bind(target)
                 value = function (propertyKey: any, propertyValue: any) {
                   let oldValue = Object.getOwnPropertyDescriptor(target, propertyKey)?.value
-                  if (valueBound(propertyKey, propertyValue)) {
-                    if (property === "set") (target as Set<any>).forEach((item: any, index: number) => { if (item === propertyValue) propertyKey = index.toString() })
-                    management_exe_.rootManagement.callReact(new datChangeObj({
-                      ruta: management_exe_.path + '[' + propertyKey + ']',
-                      hito: typeChange.seter,
-                      ambito: stateAmbitReaction.local,
-                      datoNuevo: propertyValue,
-                      datoActual: oldValue
-                    }))
+                  if (property === 'add') {
+                    if (valueBound(propertyKey)) {
+                      management_exe_.rootManagement.callReact(new datChangeObj({
+                        ruta: management_exe_.path + '[' + propertyKey?.toString() + ']',
+                        hito: typeChange.seter,
+                        ambito: stateAmbitReaction.local,
+                        datoNuevo: propertyKey,
+                        datoActual: oldValue
+                      }))
+                    }
+                  } else {
+                    if (valueBound(propertyKey, propertyValue)) {
+                      management_exe_.rootManagement.callReact(new datChangeObj({
+                        ruta: management_exe_.path + '[' + propertyKey?.toString() + ']',
+                        hito: typeChange.seter,
+                        ambito: stateAmbitReaction.local,
+                        datoNuevo: propertyValue,
+                        datoActual: oldValue
+                      }))
+                    }
                   }
                   return management_exe_.proxyObj
                 }
@@ -445,7 +706,7 @@ export class InternalUtils {
             return value;
           },
           has(target, property) {
-            if (property == internal_exe_property) return true
+            if (property === internal_exe_property || property === string_exe_property) return true
             return Reflect.has(target, property)
           },
         } as ProxyHandler<Object>) as TypeStruct_exe_<any>
@@ -456,13 +717,14 @@ export class InternalUtils {
           get(target: object, property: string | symbol, receiver: any) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
             if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
+            var receiverSafe = ((target instanceof Set) || (target instanceof Map)) ? target : receiver;
+            var value = (property === string_exe_property && !(string_exe_property in target)) ? management_exe_ : Reflect.get(target, property, receiverSafe);
             if ((typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) && ((property === 'set' || property === 'add')))
               value = value.bind(target)
             return value;
           },
           has(target, property) {
-            if (property == internal_exe_property) return true
+            if (property === internal_exe_property || property === string_exe_property) return true
             return Reflect.has(target, property)
           },
         } as ProxyHandler<Object>) as TypeStruct_exe_<any>
@@ -501,21 +763,33 @@ export class InternalUtils {
           get(target: object, property: string | symbol, receiver: any) {
             let management_exe_ = managementHierarchicalData as ManagementHierarchicalData
             if (property == internal_exe_property) return managementHierarchicalData as ManagementHierarchicalData
-            var value = (property == '_exe_' && !('_exe_' in target)) ? management_exe_ : Reflect.get(target, property, receiver);
+            var receiverSafe = ((target instanceof Set) || (target instanceof Map)) ? target : receiver;
+            var value = (property === string_exe_property && !(string_exe_property in target)) ? management_exe_ : Reflect.get(target, property, receiverSafe);
             if (typeof value === "function" && ((target instanceof Set) || (target instanceof Map))) {
               if (property === 'set' || property === 'add') {
                 let valueBound = value.bind(target)
                 value = function (propertyKey: any, propertyValue: any) {
                   let oldValue = Object.getOwnPropertyDescriptor(target, propertyKey)?.value
-                  if (valueBound(propertyKey, propertyValue)) {
-                    if (property === "set") (target as Set<any>).forEach((item: any, index: number) => { if (item === propertyValue) propertyKey = index.toString() })
-                    management_exe_.rootManagement.callReact(new datChangeObj({
-                      ruta: management_exe_.path + '[' + propertyKey + ']',
-                      hito: typeChange.seter,
-                      ambito: stateAmbitReaction.local,
-                      datoNuevo: propertyValue,
-                      datoActual: oldValue
-                    }))
+                  if (property === 'add') {
+                    if (valueBound(propertyKey)) {
+                      management_exe_.rootManagement.callReact(new datChangeObj({
+                        ruta: management_exe_.path + '[' + propertyKey?.toString() + ']',
+                        hito: typeChange.seter,
+                        ambito: stateAmbitReaction.local,
+                        datoNuevo: propertyKey,
+                        datoActual: oldValue
+                      }))
+                    }
+                  } else {
+                    if (valueBound(propertyKey, propertyValue)) {
+                      management_exe_.rootManagement.callReact(new datChangeObj({
+                        ruta: management_exe_.path + '[' + propertyKey?.toString() + ']',
+                        hito: typeChange.seter,
+                        ambito: stateAmbitReaction.local,
+                        datoNuevo: propertyValue,
+                        datoActual: oldValue
+                      }))
+                    }
                   }
                   return management_exe_.proxyObj
                 }
@@ -534,20 +808,60 @@ export class InternalUtils {
             return value;
           },
           has(target, property) {
-            if (property == internal_exe_property) return true
+            if (property === internal_exe_property || property === string_exe_property) return true
             return Reflect.has(target, property)
           },
         } as ProxyHandler<Object>) as TypeStruct_exe_<any>
         break
     }
     if (fatherStruct && fatherProperty) {
-      if (_exe_.intenal_utils.gestType(fatherStruct) in [processingType.array, processingType.set, processingType.map])
+      if ([processingType.array, processingType.set, processingType.map].includes(_exe_.intenal_utils.gestType(fatherStruct)))
         fatherProperty = '[' + fatherProperty + ']'
       else
         fatherProperty = '|' + fatherProperty
       managementHierarchicalData.path = _exe_.path(fatherStruct) + fatherProperty
       managementHierarchicalData.rootManagement = _exe_.intenal_utils.get_exe_(fatherStruct).rootManagement
     } else managementHierarchicalData.rootManagement = new ManagementReactionsObj(managementHierarchicalData.proxyObj)
+
+    // --- RECURSIVE ASSIMILATION ---
+    // Iterate over immediate keys to safely box primitives or create deep proxies
+    if (thisArg && typeof thisArg === 'object') {
+      let stateGets = managementHierarchicalData.rootManagement.observingGets;
+      managementHierarchicalData.rootManagement.observingGets = false;
+
+      if (typeProcessing === processingType.array || typeProcessing === processingType.object) {
+        for (let key in thisArg) {
+          if (Object.prototype.hasOwnProperty.call(thisArg, key)) {
+            let initialValue = (thisArg as any)[key];
+            if (!_exe_.be(initialValue)) {
+              InternalUtils.setProperty_strict(managementHierarchicalData.proxyObj, key, initialValue);
+            }
+          }
+        }
+      } else if (typeProcessing === processingType.map) {
+        let mapTarget = thisArg as unknown as Map<any, any>;
+        let copyEntries = Array.from(mapTarget.entries());
+        for (let [key, val] of copyEntries) {
+          if (!_exe_.be(val)) {
+            InternalUtils.setProperty_strict(managementHierarchicalData.proxyObj, key, val);
+          }
+        }
+      } else if (typeProcessing === processingType.set) {
+        let setTarget = thisArg as unknown as Set<any>;
+        let copyValues = Array.from(setTarget.values());
+        setTarget.clear();
+        for (let val of copyValues) {
+          if (!_exe_.be(val)) {
+            InternalUtils.setProperty_strict(managementHierarchicalData.proxyObj, val.toString(), val);
+          } else {
+            setTarget.add(val);
+          }
+        }
+      }
+
+      managementHierarchicalData.rootManagement.observingGets = stateGets;
+    }
+
     return managementHierarchicalData.proxyObj
   }
 

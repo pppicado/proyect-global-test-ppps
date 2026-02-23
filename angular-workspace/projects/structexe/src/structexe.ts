@@ -27,7 +27,7 @@ export class _exe_ {
    * @param target Objeto a comprobar.
    * @returns Verdadero si el objeto tiene la propiedad internal_exe_property, falso en caso contrario.
    */
-  static be(target: any) {
+  static be(target: any): boolean {
     return (target != null && typeof target == 'object' && internal_exe_property in target)
   }
 
@@ -43,7 +43,7 @@ export class _exe_ {
     let typeStruct = _exe_.intenal_utils.gestType(importObj)
     return _exe_.intenal_utils.newProxy(importObj, typeStruct, fatherStruct, fatherProperty)
   }
- 
+
   // /**
   //  * *************************************************************************** 
   //  * @method free Metodo que borra la propiedad de la instancia.
@@ -105,9 +105,9 @@ export class _exe_ {
     }
     // Multiplexa la asignación de la propiedad a través de la ruta jerárquica con comodines
     _exe_.route(thisArg, path, (propertyValue: any, propertyName: string, structTarget: any, _exe_Path: string, TypeStruct_exe_: TypeStruct_exe_<any>) => {
-      muting = (muting != undefined) ? muting : _exe_.intenal_utils.get_exe_(TypeStruct_exe_).mutating
+      muting = (muting != undefined) ? muting : (_exe_.intenal_utils.get_exe_(TypeStruct_exe_)?.mutating ?? _exe_.intenal_utils.get_exe_(structTarget)?.mutating);
       returnValue = _exe_.intenal_utils.setProperty_strict(structTarget, propertyName, value) // PPPS en proceso , muting, transformValue, _exe_Path, TypeStruct_exe_
-    }, (err: string) => { throw new Error(err) })
+    }, (err: string) => { throw new Error(err) }, undefined, { transformValue: transformValue })
     return returnValue
   }
   /**	
@@ -119,7 +119,7 @@ export class _exe_ {
    * @param callbackfnKo Función que se va a llamar si no se encuentra el valor
    * @returns Valor encontrado o undefined si no se encuentra
    */
-  static route(cursor: Object, path: string = '', callBackfnOk?: (value: any, property: string, struct: any, _exe_Path: string, TypeStruct_exe_: TypeStruct_exe_<any>) => void, callbackfnKo?: (err: string) => void, altOrigin?: { cursor: Object, path: string, _exe_Path: string, TypeStruct_exe_: TypeStruct_exe_<any> }): any {
+  static route(cursor: Object, path: string = '', callBackfnOk?: (value: any, property: string, struct: any, _exe_Path: string, TypeStruct_exe_: TypeStruct_exe_<any>) => void, callbackfnKo?: (err: string) => void, altOrigin?: { cursor: Object, path: string, _exe_Path: string, TypeStruct_exe_: TypeStruct_exe_<any> }, options?: { transformValue?: boolean }): any {
     let pathCursor = path
     let keyFind!: string
     let valueFind!: string
@@ -184,7 +184,23 @@ export class _exe_ {
         }
 
         if (property[0] != '(') {
-          returnValue = _exe_.intenal_utils.getByStr(cursor, property, () => { }, (err) => ok = false)
+          let found = false;
+          returnValue = _exe_.intenal_utils.getByStr(cursor, property, () => { found = true; }, (err) => { found = false; })
+
+          if (!found) {
+            if (options?.transformValue) {
+              if (propertyes.length > 0) {
+                // Auto-vivify intermediate nodes
+                _exe_.intenal_utils.setProperty_strict(cursor, property, {});
+                returnValue = (cursor as any)[property];
+              } else {
+                // Gracefully pass the final missing node for assignment
+                returnValue = undefined;
+              }
+            } else {
+              ok = false;
+            }
+          }
         } else {
           [keyFind, valueFind] = property.slice(1, property.length - 1).split(':')
           ok = false
@@ -192,7 +208,7 @@ export class _exe_ {
             if ((keyFind === '?' || keyFind === stringKey) && (all || valueFind === value.toString())) {
               ok = true
               iteration = true
-              returnValue = _exe_.route(value, propertyes.join('|'), callBackfnOk, callbackfnKo, { cursor: cursor, path: stringKey || '', _exe_Path: _exe_Path!, TypeStruct_exe_: TypeStruct_exe_! })
+              returnValue = _exe_.route(value, propertyes.join('|'), callBackfnOk, callbackfnKo, { cursor: cursor, path: stringKey || '', _exe_Path: _exe_Path!, TypeStruct_exe_: TypeStruct_exe_! }, options)
             }
           })
           propertyes = []
@@ -225,7 +241,7 @@ export class _exe_ {
     let arrayKeyValues: Array<[value: any, realKey: any, stringKey: string]> = []
     switch (_exe_.intenal_utils.gestType(target)) {
       case processingType.object:
-        arrayKeyValues = Object.entries(target).map((item) => [item[1], item[0], item[0].toString()])
+        arrayKeyValues = (target != null) ? Object.entries(target).map((item) => [item[1], item[0], item[0].toString()]) : []
         break;
       case processingType.map:
         arrayKeyValues = Array.from((target as Map<any, any>).entries()).map((item) => [item[1], item[0], item[0].toString()])
@@ -283,8 +299,10 @@ export class _exe_ {
         break
       }
       default:
-        if (_exe_.be(origen))
-          target = (origen._exe_ as ManagementHierarchicalData).structObj
+        if (_exe_.be(origen)) {
+          let structObj = (origen._exe_ as ManagementHierarchicalData).structObj;
+          target = (structObj && 'value' in structObj) ? structObj.value : structObj;
+        }
         // processingType.NoMutation, processingType.primitiveData, processingType.NoObserver, processingType.function, processingType.unset ...          
         break;
     }
@@ -305,7 +323,7 @@ export class _exe_ {
     if (typeof path == 'string') {
       // posible mejora identificación de propiedad en caso de ser array/map/set PPPS
       path = (path.indexOf('/') === 0) ? path : manager.path + ((path.indexOf('[') === 0) ? '' : '|') + path
-      path = new datChangeObj({ ruta: path })
+      path = new datChangeObj({ ruta: path, hito: typeChange.change })
     }
     return manager.rootManagement.react(path, action, component)
   }
@@ -691,14 +709,16 @@ export class ManagementReactionsObj {
       if (this.reactions[index].action === accion && this.reactions[index].thisArg === thisArg) reaction = this.reactions[index]
     })
 
-    this.index[cambio.hito][stateAmbitReaction.pause][cambio.ruta].forEach((index) => {
-      if (this.reactions[index].action === accion && this.reactions[index].thisArg === thisArg) {
-        reaction = this.reactions[index]
-        reaction.manage.status = reaction?.change.ambito || stateAmbitReaction.local
-        this.index[cambio.hito][stateAmbitReaction.pause][reaction?.change.ruta || ''] = this.index[cambio.hito][stateAmbitReaction.pause][reaction?.change.ruta || ''].filter((id) => id != index)
-        this.index[cambio.hito][reaction?.change.ambito || stateAmbitReaction.local][cambio.ruta].push(index)
-      }
-    })
+    if (this.index[cambio.hito][stateAmbitReaction.pause]?.hasOwnProperty(cambio.ruta)) {
+      this.index[cambio.hito][stateAmbitReaction.pause][cambio.ruta].forEach((index) => {
+        if (this.reactions[index].action === accion && this.reactions[index].thisArg === thisArg) {
+          reaction = this.reactions[index]
+          reaction.manage.status = reaction?.change.ambito || stateAmbitReaction.local
+          this.index[cambio.hito][stateAmbitReaction.pause][reaction?.change.ruta || ''] = this.index[cambio.hito][stateAmbitReaction.pause][reaction?.change.ruta || ''].filter((id) => id != index)
+          this.index[cambio.hito][reaction?.change.ambito || stateAmbitReaction.local][cambio.ruta].push(index)
+        }
+      })
+    }
 
     if (!reaction) {
       this.contReactions++
@@ -745,36 +765,53 @@ export class ManagementReactionsObj {
    * @param cambio Objeto de cambio.
    * @returns void
    */
-  private _exe_React(cambio: datChangeObj) {
-
-    if (this.index[cambio.hito][stateAmbitReaction.local].hasOwnProperty(cambio.ruta))
-      this.index[cambio.hito][stateAmbitReaction.local][cambio.ruta].forEach((idActiva) => {
-        this.reactions[idActiva].manage.calls++
-        this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [cambio])
-      })
-
-    // filtraremos las rutas que sean un segmento de la actual siendo estos los padres y llamando a sus subcripciones de tipo hijo
-    cambio.ruta.split('|').forEach((nivel, index) => {
-      let ruta = cambio.ruta.split('|', index).join('|')
-      if (this.index[cambio.hito][stateAmbitReaction.childens].hasOwnProperty(ruta))
-        this.index[cambio.hito][stateAmbitReaction.childens][ruta].forEach((idActiva) => {
-          let hijo = new datChangeObj(cambio)
-          hijo.ambito = stateAmbitReaction.childens
+  private _exe_React(dataChange: datChangeObj) {
+    
+      
+    
+      if (this.index[dataChange.hito][stateAmbitReaction.local].hasOwnProperty(dataChange.ruta))
+        this.index[dataChange.hito][stateAmbitReaction.local][dataChange.ruta].forEach((idActiva) => {
           this.reactions[idActiva].manage.calls++
-          this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [hijo])
+          this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [dataChange])
         })
-    })
 
-    // filtraremos las rutas que empiecen por la ruta actual siendo estos los hijos y llamando a sus subcripciones de tipo padre
-    let rutasPadre = Object.keys(this.index[stateAmbitReaction.fathers]).filter((ruta) => ruta.indexOf(cambio.ruta) === 0)
-    rutasPadre.forEach((ruta) => {
-      this.index[cambio.hito][stateAmbitReaction.fathers][ruta].forEach((idActiva) => {
-        let cambioPadre = new datChangeObj(cambio)
-        cambioPadre.ambito = stateAmbitReaction.fathers
-        this.reactions[idActiva].manage.calls++
-        this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [cambioPadre])
+      if (this.index[typeChange.change][stateAmbitReaction.local].hasOwnProperty(dataChange.ruta)) 
+        this.index[typeChange.change][stateAmbitReaction.local][dataChange.ruta].forEach((idActiva) => {
+          if (_exe_.intenal_utils.stringify(this.reactions[idActiva].action) === _exe_.intenal_utils.stringify(dataChange.action)) {
+            zxczxc
+            this.reactions[idActiva].manage.calls++
+            this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [dataChange])
+          }
+        })
+
+
+      
+        
+      
+
+      // filtraremos las rutas que sean un segmento de la actual siendo estos los padres y llamando a sus subcripciones de tipo hijo
+      dataChange.ruta.split('|').forEach((nivel, index) => {
+        let ruta = dataChange.ruta.split('|', index).join('|')
+        if (this.index[dataChange.hito][stateAmbitReaction.childens].hasOwnProperty(ruta))
+          this.index[dataChange.hito][stateAmbitReaction.childens][ruta].forEach((idActiva) => {
+            let hijo = new datChangeObj(dataChange)
+            hijo.ambito = stateAmbitReaction.childens
+            this.reactions[idActiva].manage.calls++
+            this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [hijo])
+          })
       })
-    })
+
+      // filtraremos las rutas que empiecen por la ruta actual siendo estos los hijos y llamando a sus subcripciones de tipo padre
+      let rutasPadre = Object.keys(this.index[dataChange.hito][stateAmbitReaction.fathers]).filter((ruta) => ruta.indexOf(dataChange.ruta) === 0)
+      rutasPadre.forEach((ruta) => {
+        this.index[dataChange.hito][stateAmbitReaction.fathers][ruta].forEach((idActiva) => {
+          let cambioPadre = new datChangeObj(dataChange)
+          cambioPadre.ambito = stateAmbitReaction.fathers
+          this.reactions[idActiva].manage.calls++
+          this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [cambioPadre])
+        })
+      })
+    
   }
 
 }    

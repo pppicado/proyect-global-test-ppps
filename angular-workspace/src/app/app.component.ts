@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { RedimFrameService } from '@pppicado/redim-frame';
 import { ChartComponent } from './chart/chart.component';
 import { FormComponent } from './form/form.component';
-import { _exe_, datChangeObj, Reaction, stateAmbitReaction, typeChange } from '@pppicado/structexe';
+import { _exe_, TypeStruct_exe_ } from '@pppicado/structexe';
 import { ReactiveState } from '@pppicado/reactive-proxy';
 
 @Component({
@@ -12,12 +12,21 @@ import { ReactiveState } from '@pppicado/reactive-proxy';
 })
 export class AppComponent {
 
-  title = 'angular-workspace';
-  store: any;
+  rawData = {
+    app: {
+      nombre: "Mi App Básica",
+      versiones: [1, 2]
+    },
+    ajustes: new Map([['idioma', 'es']]),
+    etiquetas: new Set(['urgente'])
+  };
+
+  store!: any;
+  store_typed!: TypeStruct_exe_<typeof this.rawData>;
 
   constructor(private floatingWindowService: RedimFrameService) {
 
-    let test: string = 'reactive-proxy' // structexe
+    let test: string = 'structexe' // reactive-proxy
 
     /*************************************************************************** 
      * Use ReactiveState
@@ -129,120 +138,65 @@ export class AppComponent {
 
       /*************************************************************************** 
       * Use StructExe
+      *
+      * GUÍA MAESTRA DE FUNCIONALIDADES - STRUCTEXE
+      * Este archivo recorre todas las capacidades de la librería base en un flujo lógico.
       */
 
-      const persona =
-      {
-        name: 'John Doe',
-        sex: 'male',
-        age: 15,
-        adult: false,
-        address: [
-          {
-            street: '123 Main St',
-            city: 'Anytown',
-            state: 'CA',
-            zip: '12345'
-          },
-          {
-            street: '456 Secondary St',
-            city: 'otherAnytown',
-            state: 'CA',
-            zip: '12346'
-          },
-        ]
-      }
+      // 1. INICIALIZACIÓN COMPLEJA
+      // Empezamos con un objeto raw de datos
+      this.store_typed = _exe_.newStruct_exe_(this.rawData);
 
-      let data = _exe_.newStruct_exe_({ persona: persona })
+      console.log("--- 1. Acceso y Uso de Primitivos (StructExe) ---");
+      // Los datos primitivos se envuelven pero se acceden de forma normal
+      console.log(this.store_typed.app.nombre + " v" + this.store_typed.app.versiones[0]); // "Mi App Básica v1"
+      console.log("Ruta del nombre:", _exe_.path(this.store_typed.app.nombre)); // "/[app]|nombre"
+      console.log("Ruta del nombre:", this.store_typed.app.nombre._exe_!.path); // "/[app]|nombre"
 
-      _exe_.path(data.persona.name)
-      _exe_.path(data.persona)
+      console.log("\n--- 2. Auto-vivienda (Creación Automática) ---");
+      // Creación de ramas completas que no existían previamente mediante _exe_.set
+      _exe_.set(this.store_typed, 'usuarios|0|perfil|avatar', "http://imagen.png");
+      console.log("Estructura dinámica:", _exe_.export((this.store_typed as any).usuarios[0]));
+      console.log("Estructura dinámica:", this.store_typed._exe_!.export());
+      // Resultado: { perfil: { avatar: "http://imagen.png" } }
 
-      data.persona.name._exe_
-      data.persona._exe_!.path
-      data.persona.name._exe_!.path
-      data.persona.address._exe_!.path
-      data.persona.address[0]._exe_!.path
-      data.persona.address[0].state._exe_!.path
+      console.log("\n--- 3. Reacciones (Suscripciones Base) ---");
+      // Nos suscribimos a una ruta específica desde el manejador global
+      _exe_.react(this.store_typed, "/|usuarios|0|perfil|avatar", (cambio: any) => {
+        console.log("📢 El avatar ha cambiado a:", cambio.datoNuevo);
+      });
 
-      data.persona.name // 'John Doe'
-      data.persona.age // 15
-      data.persona.adult // false
-      data.persona.address[0].street // '123 Main St'
-      data.persona.address[1].city // 'otherAnytown'
-      data.persona
+      (this.store_typed as any).usuarios[0].perfil.avatar = "http://nuevo-avatar.jpg"; // Dispara el log
 
-      let reaccion: Reaction = _exe_.react(data, '?', (change) => { console.log(change) },)
+      console.log("\n--- 4. Mapas Híbridos ---");
+      // Al ser proxies puros, utilizamos el API original de Map de ES6.
+      this.store_typed.ajustes.set('tema', 'oscuro');
 
+      console.log("¿Existe 'tema'?:", this.store_typed.ajustes.has('tema')); // true
+      console.log("Acceso por get():", this.store_typed.ajustes.get('tema'));    // "oscuro"
 
-      _exe_.react(data, '?', (change) => { console.log(change) })
+      console.log("\n--- 5. Sets Transparentes ---");
+      // Los Sets añaden reactividad sin romper la experiencia estándar.
+      this.store_typed.etiquetas.add("leído");
+      console.log("¿Existe 'leído'?:", this.store_typed.etiquetas.has("leído")); // true
 
-      data.persona._exe_!.react('age', (change) => {
-        if (change.datoNuevo >= 18) {
-          data.persona.adult = true
-        }
-      })
+      console.log("\n--- 6. Introspección y Validación ---");
+      const nodoHijo = this.store_typed.app.nombre;
 
-      data.persona.age = 18 // console { oldValue: 15, newValue: 18, type: 'set', path: '/|age' } , { oldValue: false, newValue: true, type: 'set', path: '/|adult' }
-      data.persona.adult // true  
-      data.persona.age = 15 // console { oldValue: 18, newValue: 15, type: 'set', path: '/|age' } , console { oldValue: true, newValue: false, type: 'set', path: '/|adult' }
-      data.persona.adult // false 
+      console.log("¿Es un nodo reactivo controlado por _exe_?:", _exe_.be(nodoHijo)); // true
+      console.log("Path calculado de este primitivo:", _exe_.path(nodoHijo));
 
-      _exe_.react(data, 'persona|address[0]|city', (change) => { console.log(change) })
+      console.log("\n--- 7. Exportación de Datos a formato Plano ---");
+      // _exe_.export limpia el contenedor proxy de los datos para serialización.
+      const copiaLimpia = _exe_.export(this.store_typed);
 
-      data._exe_!.react('persona|address[0]|city', (change) => { console.log(change) })
+      console.log("Copia JSON-ready:", JSON.stringify(copiaLimpia));
+      console.log("¿Es map plano limpio?:", copiaLimpia.ajustes instanceof Map); // true
 
-      _exe_.react(data.persona.address, '[?]|city', (change) => { console.log(change) })
-
-      data.persona.address._exe_!.react('[?]|city', (change) => { console.log(change) })
-
-      _exe_.react(data, 'persona|address[(city:Anytown)]|city', (change) => { console.log(change) })
-
-      data._exe_!.react('persona|address[(city:Anytown)]|city', (change) => { console.log(change) })
-
-      data._exe_!.react(new datChangeObj({
-        ruta: 'persona|address',
-        hito: typeChange.seter,
-        ambito: stateAmbitReaction.childens
-      }
-      ), (change) => { console.log(change) }, this)
-
-      data.persona.address._exe_!.react('[?]|city', (change) => {
-        if (change.datoNuevo != change.datoActual) {
-          console.log('city changed to', change.datoNuevo)
-        }
-      })
-
-      data.persona.address[0].city = 'otherNewAnytown'
-      // console { oldValue: 'Anytown', newValue: 'otherNewAnytown', type: 'set', path: '/|address[0]|city' }
-      // console 'city changed to otherNewAnytown'
-      data.persona.address[1].city = 'otherNewAnytown'
-      // console { oldValue: 'otherAnytown', newValue: 'otherNewAnytown', type: 'set', path: '/|address[1]|city' }
-      // console 'city changed to otherNewAnytown'
-
-      data.persona.address = [
-        {
-          street: '000 Secondary St',
-          city: 'otherAnytown',
-          state: 'CA',
-          zip: '12346'
-        },
-      ]
-
-      // console { oldValue: {...}, newValue: undefined, type: 'del', path: '/|address[1]' }
-      // console { oldValue: {...}, newValue: undefined, type: 'del', path: '/|address[1]|street' }
-      // console { oldValue: {...}, newValue: undefined, type: 'del', path: '/|address[1]|city' }
-      // console { oldValue: {...}, newValue: undefined, type: 'del', path: '/|address[1]|state' }
-      // console { oldValue: {...}, newValue: undefined, type: 'del', path: '/|address[1]|zip' }
-      // console { oldValue: {...}, newValue: {...}, type: 'mod', path: '/|address[0]' }
-      // console { oldValue: {...}, newValue: {...}, type: 'mod', path: '/|address[0]|street' }
-      // console { oldValue: {...}, newValue: {...}, type: 'mod', path: '/|address[0]|city' }
-      // console { oldValue: {...}, newValue: {...}, type: 'mod', path: '/|address[0]|state' }
-      // console { oldValue: {...}, newValue: {...}, type: 'mod', path: '/|address[0]|zip' }
-
-      data.persona.address._exe_!.path // '/|address'
-
-      // ***************************************************************************/
+      console.log("Estructura:", this.store_typed);
+      console.log("JSON-ready:", JSON.stringify(this.store_typed));
+      console.log("\n--- FIN DE LA DEMOSTRACIÓN STRUCTEXE ---");
+      this.store = this.store_typed;
     }
 
   }
