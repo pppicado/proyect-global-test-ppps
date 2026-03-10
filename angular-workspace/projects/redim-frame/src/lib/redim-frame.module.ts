@@ -4,11 +4,15 @@ import { CommonModule } from '@angular/common';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
 import { FloatingWindowComponent } from './floating-window/floating-window.component';
+import { ModalWindowComponent } from './modal-window/modal-window.component';
+import { BaseWindowDirective } from './base-window.directive';
 import { VirtualScrollbarModule } from '@pppicado/virtual-scrollbar';
 
 @NgModule({
   declarations: [
-    FloatingWindowComponent
+    FloatingWindowComponent,
+    ModalWindowComponent,
+    BaseWindowDirective
   ],
   imports: [
     CommonModule,
@@ -19,6 +23,8 @@ import { VirtualScrollbarModule } from '@pppicado/virtual-scrollbar';
   ],
   exports: [
     FloatingWindowComponent,
+    ModalWindowComponent,
+    BaseWindowDirective,
     VirtualScrollbarModule
   ]
 })

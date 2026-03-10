@@ -1,37 +1,14 @@
 import { Component, EventEmitter, HostBinding, Input, Output, Renderer2, OnDestroy, AfterViewInit, OnInit, ComponentRef } from '@angular/core';
 import { CdkDragEnd, CdkDragStart, CdkDrag } from '@angular/cdk/drag-drop';
 import { Portal, CdkPortalOutletAttachedRef } from '@angular/cdk/portal';
+import { BaseWindowDirective } from '../base-window.directive';
 
 @Component({
   selector: 'lib-floating-window',
   templateUrl: './floating-window.component.html',
   styleUrls: ['./floating-window.component.css']
 })
-export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy {
-  @Input() width: number = 30; // Default 30vw
-  @Input() height: number = 30; // Default 30vh
-  @Input() x: number = 10; // Default 10vw
-  @Input() y: number = 10; // Default 10vh
-  @Input() zIndex: number = 1000;
-  @Input() contentPortal: Portal<any> | null = null;
-  @Input() windowData: any = null;
-
-  @Input() resizeBorder: number = 0.5; // Default 0.5vw
-  @Input() minWidth: number = 10; // Default 10vw
-  @Input() minHeight: number = 10; // Default 10vh
-
-  @Input() scrollIcon: string = ''
-  @Input() scrollThumbSize: number = 2; // Default 2vw
-
-  @Output() change = new EventEmitter<{
-    width?: number,
-    height?: number,
-    x?: number,
-    y?: number,
-    focus?: boolean,
-    close?: boolean
-    zIndex?: number
-  }>();
+export class FloatingWindowComponent extends BaseWindowDirective implements OnInit, AfterViewInit, OnDestroy {
 
   @HostBinding('style.--resizeBorder') resizeBorderStyle: string = this.resizeBorder + 'vw';
 
@@ -62,7 +39,9 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   private mouseUpListener: Function | null = null;
   private windowResizeListener: Function | null = null;
 
-  constructor(private renderer: Renderer2) { }
+  constructor(private renderer: Renderer2) {
+    super();
+  }
 
   ngOnInit() {
     this.windowResizeListener = this.renderer.listen('window', 'resize', () => this.onWindowResize());
@@ -71,11 +50,12 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   ngAfterViewInit() {
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     this.removeResizeListeners();
     if (this.windowResizeListener) {
       this.windowResizeListener();
     }
+    super.ngOnDestroy();
   }
 
   onWindowResize() {
@@ -87,13 +67,7 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
     // So on resize, Angular will see the position object changed and update the transform.
   }
 
-  onPortalAttached(ref: CdkPortalOutletAttachedRef) {
-    if (ref instanceof ComponentRef && this.windowData) {
-      Object.keys(this.windowData).forEach(key => {
-        ref.setInput(key, this.windowData[key]);
-      });
-    }
-  }
+  // onPortalAttached handled by BaseWindowDirective
 
   onDragStart(event: CdkDragStart) {
     this.change.emit({ focus: true });
@@ -108,13 +82,7 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
     this.y = ((rect.top + scrollY) / window.innerHeight) * 100;
   }
 
-  onWindowClick() {
-    this.change.emit({ focus: true });
-  }
-
-  closeWindow() {
-    this.change.emit({ close: true });
-  }
+  // onWindowClick and closeWindow handled by BaseWindowDirective
 
   // Resizing logic
   initResize(event: MouseEvent, direction: string) {

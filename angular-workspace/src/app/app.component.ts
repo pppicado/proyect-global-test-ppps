@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { RedimFrameService } from '../../projects/redim-frame/src/lib/redim-frame.service';
+import { RedimFrameService } from '@pppicado/redim-frame';
 import { ChartComponent } from './chart/chart.component';
 import { FormComponent } from './form/form.component';
-import { _exe_, TypeStruct_exe_ } from '../../projects/structexe/src/structexe';
+import { _exe_, TypeStruct_exe_ } from '@pppicado/structexe';
 
 @Component({
   selector: 'app-root',
@@ -26,7 +26,7 @@ export class AppComponent {
   constructor(private floatingWindowService: RedimFrameService) {
 
     // desactivamos los tests
-    let test: string = '' // 'structexe'
+    let test: string = 'structexe' // 'structexe'
 
     if (test === 'structexe') {
 
@@ -115,4 +115,11 @@ export class AppComponent {
       data: { email: 'x@ejemplo.com' }
     });
   }
+
+  openModalExample() {
+    this.floatingWindowService.openModal(FormComponent, {
+      data: { email: 'modal@ejemplo.com' }
+    });
+  }
 }
+

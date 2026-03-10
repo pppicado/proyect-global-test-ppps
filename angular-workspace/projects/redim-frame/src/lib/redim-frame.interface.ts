@@ -1,4 +1,4 @@
-export interface FloatingWindowConfig {
+export interface StartWindowConfig {
     width?: number;
     height?: number;
     x?: number;
