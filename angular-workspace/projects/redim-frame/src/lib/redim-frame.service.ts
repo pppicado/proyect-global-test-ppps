@@ -197,10 +197,23 @@ export class RedimFrameService {
     if (overlayRef.hostElement) {
       overlayRef.hostElement.style.zIndex = `${windowInstance.zIndex}`;
       if (config.origin) {
-         // Ajustamos el overlay host al tamaño del origin
-         const rect = config.origin.getBoundingClientRect();
-         overlayRef.hostElement.style.width = `${rect.width}px`;
-         overlayRef.hostElement.style.height = `${rect.height}px`;
+         const updateSize = () => {
+             const rect = config.origin!.getBoundingClientRect();
+             overlayRef.hostElement.style.width = `${rect.width}px`;
+             overlayRef.hostElement.style.height = `${rect.height}px`;
+         };
+         updateSize();
+         
+         const resizeObserver = new ResizeObserver(() => updateSize());
+         resizeObserver.observe(config.origin);
+
+         // Clean up ResizeObserver when window closes
+         const sub = windowInstance.change.subscribe((event) => {
+           if (event.close) {
+             resizeObserver.disconnect();
+             sub.unsubscribe();
+           }
+         });
       }
     }
 

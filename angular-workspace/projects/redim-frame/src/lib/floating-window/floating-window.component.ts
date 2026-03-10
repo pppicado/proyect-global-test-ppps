@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Input, Output, Renderer2, OnDestroy, AfterViewInit, OnInit, ComponentRef } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output, Renderer2, OnDestroy, AfterViewInit, OnInit, ComponentRef, ChangeDetectorRef } from '@angular/core';
 import { CdkDragEnd, CdkDragStart, CdkDrag } from '@angular/cdk/drag-drop';
 import { Portal, CdkPortalOutletAttachedRef } from '@angular/cdk/portal';
 import { BaseWindowDirective } from '../base-window.directive';
@@ -19,11 +19,13 @@ export class FloatingWindowComponent extends BaseWindowDirective implements OnIn
   @HostBinding('style.--z-index') get zIndexStyle() { return this.zIndex; }
 
 
-  private xyDragPositionPixels = { x: 0, y: 0 };
-  get dragPositionPixels() {
-    this.xyDragPositionPixels.x = (this.x * window.innerWidth) / 100;
-    this.xyDragPositionPixels.y = (this.y * window.innerHeight) / 100;
-    return this.xyDragPositionPixels;
+  xyDragPositionPixels = { x: 0, y: 0 };
+  
+  updateDragPosition() {
+    this.xyDragPositionPixels = {
+      x: (this.x * window.innerWidth) / 100,
+      y: (this.y * window.innerHeight) / 100
+    };
   }
 
   private isResizing: boolean = false;
@@ -39,11 +41,12 @@ export class FloatingWindowComponent extends BaseWindowDirective implements OnIn
   private mouseUpListener: Function | null = null;
   private windowResizeListener: Function | null = null;
 
-  constructor(private renderer: Renderer2) {
+  constructor(private renderer: Renderer2, private cdr: ChangeDetectorRef) {
     super();
   }
 
   ngOnInit() {
+    this.updateDragPosition();
     this.windowResizeListener = this.renderer.listen('window', 'resize', () => this.onWindowResize());
   }
 
@@ -59,12 +62,8 @@ export class FloatingWindowComponent extends BaseWindowDirective implements OnIn
   }
 
   onWindowResize() {
-    // Force angular to trigger the getter for dragPositionPixels by emitting a dummy 
-    // event or manually forcing change detection if needed. But specifically, cdkDrag 
-    // needs to re-read [cdkDragFreeDragPosition]. Since it's bound to a getter, 
-    // it normally detects object reference changes. 
-    // A simple hack is to just let Angular's CD cycle run, but the getter returns a NEW object every time.
-    // So on resize, Angular will see the position object changed and update the transform.
+    this.updateDragPosition();
+    this.cdr.detectChanges();
   }
 
   // onPortalAttached handled by BaseWindowDirective
@@ -80,6 +79,7 @@ export class FloatingWindowComponent extends BaseWindowDirective implements OnIn
     const scrollY = window.scrollY || window.pageYOffset;
     this.x = ((rect.left + scrollX) / window.innerWidth) * 100;
     this.y = ((rect.top + scrollY) / window.innerHeight) * 100;
+    this.updateDragPosition();
   }
 
   // onWindowClick and closeWindow handled by BaseWindowDirective
@@ -129,6 +129,7 @@ export class FloatingWindowComponent extends BaseWindowDirective implements OnIn
           break;
       }
     }
+    this.updateDragPosition();
     this.change.emit({ width: this.width, height: this.height });
   }
 
