@@ -19,6 +19,7 @@ export class BaseWindowDirective implements OnDestroy {
 
   @Input() scrollIcon: string = '';
   @Input() scrollThumbSize: number = 2; // Default 2vw
+  @Input() originElement: HTMLElement | null = null;
 
   @Output() change = new EventEmitter<{
     width?: number,

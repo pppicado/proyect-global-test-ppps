@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { RedimFrameService } from '@pppicado/redim-frame';
 import { ChartComponent } from './chart/chart.component';
 import { FormComponent } from './form/form.component';
@@ -22,6 +22,8 @@ export class AppComponent {
 
   store!: any;
   store_typed!: TypeStruct_exe_<typeof this.rawData>;
+
+  @ViewChild('windowOrigin', { read: ElementRef }) windowOrigin!: ElementRef;
 
   constructor(private floatingWindowService: RedimFrameService) {
 
@@ -100,7 +102,8 @@ export class AppComponent {
       height: 40,
       x: 5,
       y: 30,
-      data: { id: 1, name: this.store.app.nombre }
+      data: { id: 1, name: this.store.app.nombre },
+      origin: this.windowOrigin.nativeElement
     });
   }
 
@@ -112,13 +115,15 @@ export class AppComponent {
       height: 30,
       x: 30,
       y: 20,
-      data: { email: 'x@ejemplo.com' }
+      data: { email: 'x@ejemplo.com' },
+      origin: this.windowOrigin.nativeElement
     });
   }
 
   openModalExample() {
     this.floatingWindowService.openModal(FormComponent, {
-      data: { email: 'modal@ejemplo.com' }
+      data: { email: 'modal@ejemplo.com' },
+      origin: this.windowOrigin.nativeElement
     });
   }
 }

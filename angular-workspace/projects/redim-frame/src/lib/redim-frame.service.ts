@@ -18,19 +18,11 @@ export class RedimFrameService {
 
   openWindows<T>(componentOrTemplate: Type<T> | TemplateRef<T>, config: StartWindowConfig = {}): ComponentRef<FloatingWindowComponent> {
 
-    const positionStrategy = config.origin
-      ? this.overlay.position()
-        .flexibleConnectedTo(config.origin)
-        .withPositions([{
-          originX: 'start',
-          originY: 'bottom',
-          overlayX: 'start',
-          overlayY: 'top',
-        }])
-      : this.overlay.position()
-        .global()
-        .left('0px')
-        .top('0px');
+    // Always use global positioning — we handle placement ourselves
+    const positionStrategy = this.overlay.position()
+      .global()
+      .left('0px')
+      .top('0px');
 
     const overlayConfig = new OverlayConfig({
       positionStrategy,
@@ -55,6 +47,12 @@ export class RedimFrameService {
     windowInstance.resizeBorder = config.resizeBorder || 0.5;
     windowInstance.scrollThumbSize = config.scrollThumbSize || 2;
     windowInstance.zIndex = config.zIndex || this.zIndexCounter++;
+
+    // If origin is provided, reparent overlay into origin and pass originElement
+    if (config.origin) {
+      windowInstance.originElement = config.origin;
+      this.reparentOverlayInto(overlayRef, config.origin);
+    }
 
     // Create Injector for user component data
     const injector = Injector.create({
@@ -111,29 +109,18 @@ export class RedimFrameService {
   }
 
   openModal<T>(componentOrTemplate: Type<T> | TemplateRef<T>, config: StartWindowConfig = {}): ComponentRef<ModalWindowComponent> {
-    const positionStrategy = config.origin
-      ? this.overlay.position()
-        .flexibleConnectedTo(config.origin)
-        .withPositions([{
-          originX: 'start',
-          originY: 'top',
-          overlayX: 'start',
-          overlayY: 'top',
-        }])
-        // A modal targeting an origin should fully cover it.
-        // It's generally better to ensure the overlay fills the space:
-        .withPush(false)
-      : this.overlay.position()
-        .global()
-        .width('100%')
-        .height('100%')
-        .centerHorizontally()
-        .centerVertically();
+    // Always use global positioning — we handle placement ourselves
+    const positionStrategy = this.overlay.position()
+      .global()
+      .width('100%')
+      .height('100%')
+      .centerHorizontally()
+      .centerVertically();
 
     const overlayConfig = new OverlayConfig({
       positionStrategy,
-      hasBackdrop: false, // El componente ModalWindowComponent dibuja el sombreado
-      scrollStrategy: this.overlay.scrollStrategies.block() // Prevenir scroll debajo del modal
+      hasBackdrop: false,
+      scrollStrategy: this.overlay.scrollStrategies.block()
     });
 
     const overlayRef = this.overlay.create(overlayConfig);
@@ -153,13 +140,19 @@ export class RedimFrameService {
     windowInstance.resizeBorder = config.resizeBorder || 0;
     windowInstance.scrollThumbSize = config.scrollThumbSize || 2;
 
+    // If origin is provided, reparent overlay into origin and pass originElement
+    if (config.origin) {
+      windowInstance.originElement = config.origin;
+      this.reparentOverlayInto(overlayRef, config.origin);
+    }
+
     // Create Injector for user component data
     const injector = Injector.create({
       parent: this.injector,
       providers: [
         { provide: WINDOW_DATA, useValue: config.data },
         { provide: ModalWindowComponent, useValue: windowInstance },
-        { provide: BaseWindowDirective, useValue: windowInstance } // For any injects relying on base
+        { provide: BaseWindowDirective, useValue: windowInstance }
       ]
     });
 
@@ -196,29 +189,42 @@ export class RedimFrameService {
     // Initial Z-Index
     if (overlayRef.hostElement) {
       overlayRef.hostElement.style.zIndex = `${windowInstance.zIndex}`;
-      if (config.origin) {
-         const updateSize = () => {
-             const rect = config.origin!.getBoundingClientRect();
-             overlayRef.hostElement.style.width = `${rect.width}px`;
-             overlayRef.hostElement.style.height = `${rect.height}px`;
-         };
-         updateSize();
-         
-         const resizeObserver = new ResizeObserver(() => updateSize());
-         resizeObserver.observe(config.origin);
-
-         // Clean up ResizeObserver when window closes
-         const sub = windowInstance.change.subscribe((event) => {
-           if (event.close) {
-             resizeObserver.disconnect();
-             sub.unsubscribe();
-           }
-         });
-      }
     }
 
     return windowRef;
   }
 
+  /**
+   * Reparents the overlay host element into the given origin container.
+   * This makes the overlay render inside the origin instead of the global overlay container.
+   */
+  private reparentOverlayInto(overlayRef: OverlayRef, origin: HTMLElement): void {
+    // Warn if origin is not a positioning context (required for absolute children)
+    const computedStyle = getComputedStyle(origin);
+    if (computedStyle.position === 'static') {
+      console.warn('[RedimFrame] El elemento origin tiene position: static. Se recomienda establecer position: relative para que las ventanas se posicionen correctamente dentro de él.');
+    }
+    if (computedStyle.overflow === 'visible') {
+      console.warn('[RedimFrame] El elemento origin tiene overflow: visible. Se recomienda establecer overflow: hidden para contener visualmente las ventanas.');
+    }
 
+    // Move the overlay host inside the origin
+    const hostElement = overlayRef.hostElement;
+    origin.appendChild(hostElement);
+
+    // Make overlay host fill the origin
+    hostElement.style.position = 'absolute';
+    hostElement.style.top = '0';
+    hostElement.style.left = '0';
+    hostElement.style.width = '100%';
+    hostElement.style.height = '100%';
+
+    // Also make the overlay pane fill the host
+    const overlayPane = overlayRef.overlayElement;
+    overlayPane.style.position = 'absolute';
+    overlayPane.style.top = '0';
+    overlayPane.style.left = '0';
+    overlayPane.style.width = '100%';
+    overlayPane.style.height = '100%';
+  }
 }

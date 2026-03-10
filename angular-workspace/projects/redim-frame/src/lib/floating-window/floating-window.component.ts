@@ -21,10 +21,19 @@ export class FloatingWindowComponent extends BaseWindowDirective implements OnIn
 
   xyDragPositionPixels = { x: 0, y: 0 };
   
+  /** Returns the reference width/height for percentage calculations */
+  private getReferenceSize(): { width: number; height: number } {
+    if (this.originElement) {
+      return { width: this.originElement.clientWidth, height: this.originElement.clientHeight };
+    }
+    return { width: window.innerWidth, height: window.innerHeight };
+  }
+
   updateDragPosition() {
+    const ref = this.getReferenceSize();
     this.xyDragPositionPixels = {
-      x: (this.x * window.innerWidth) / 100,
-      y: (this.y * window.innerHeight) / 100
+      x: (this.x * ref.width) / 100,
+      y: (this.y * ref.height) / 100
     };
   }
 
@@ -75,10 +84,18 @@ export class FloatingWindowComponent extends BaseWindowDirective implements OnIn
   onDragEnd(event: CdkDragEnd) {
     const element = event.source.getRootElement();
     const rect = element.getBoundingClientRect();
-    const scrollX = window.scrollX || window.pageXOffset;
-    const scrollY = window.scrollY || window.pageYOffset;
-    this.x = ((rect.left + scrollX) / window.innerWidth) * 100;
-    this.y = ((rect.top + scrollY) / window.innerHeight) * 100;
+    const ref = this.getReferenceSize();
+
+    if (this.originElement) {
+      const originRect = this.originElement.getBoundingClientRect();
+      this.x = ((rect.left - originRect.left) / ref.width) * 100;
+      this.y = ((rect.top - originRect.top) / ref.height) * 100;
+    } else {
+      const scrollX = window.scrollX || window.pageXOffset;
+      const scrollY = window.scrollY || window.pageYOffset;
+      this.x = ((rect.left + scrollX) / ref.width) * 100;
+      this.y = ((rect.top + scrollY) / ref.height) * 100;
+    }
     this.updateDragPosition();
   }
 
@@ -108,23 +125,24 @@ export class FloatingWindowComponent extends BaseWindowDirective implements OnIn
     if (!this.isResizing) return;
     const dxPx = event.clientX - this.startX;
     const dyPx = event.clientY - this.startY;
-    const dxVw = (dxPx / window.innerWidth) * 100;
-    const dyVh = (dyPx / window.innerHeight) * 100;
+    const ref = this.getReferenceSize();
+    const dxPercent = (dxPx / ref.width) * 100;
+    const dyPercent = (dyPx / ref.height) * 100;
 
     for (const direction of this.resizeDirection) {
       switch (direction) {
         case 'e':
-          this.width = Math.max(10, this.startWidth + dxVw);
+          this.width = Math.max(10, this.startWidth + dxPercent);
           break;
         case 'w':
-          this.width = Math.max(10, this.startWidth - dxVw);
+          this.width = Math.max(10, this.startWidth - dxPercent);
           this.x = this.startXWindow + (this.startWidth - this.width);
           break;
         case 's':
-          this.height = Math.max(this.minHeight, this.startHeight + dyVh);
+          this.height = Math.max(this.minHeight, this.startHeight + dyPercent);
           break;
         case 'n':
-          this.height = Math.max(this.minHeight, this.startHeight - dyVh);
+          this.height = Math.max(this.minHeight, this.startHeight - dyPercent);
           this.y = this.startYWindow + (this.startHeight - this.height);
           break;
       }

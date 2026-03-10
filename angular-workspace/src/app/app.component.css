@@ -1,0 +1,11 @@
+.container {
+  position: relative;
+  width: 50vw;
+  height: 50vh;
+  margin: 25vh auto;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  padding: 20px;
+  overflow: hidden;
+}
