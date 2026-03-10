@@ -21,10 +21,6 @@
         "dist/structexe",
         "projects/structexe/src"
       ],
-      "@pppicado/reactive-proxy": [
-        "dist/reactive-proxy",
-        "projects/reactive-proxy/src"
-      ],
       "@pppicado/virtual-scrollbar": [
         "dist/virtual-scrollbar",
         "projects/virtual-scrollbar/src/public-api"

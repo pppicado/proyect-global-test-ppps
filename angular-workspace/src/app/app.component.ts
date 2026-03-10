@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
-import { RedimFrameService } from '@pppicado/redim-frame';
+import { RedimFrameService } from '../../projects/redim-frame/src/lib/redim-frame.service';
 import { ChartComponent } from './chart/chart.component';
 import { FormComponent } from './form/form.component';
-import { _exe_, TypeStruct_exe_ } from '@pppicado/structexe';
-import { ReactiveState } from '@pppicado/reactive-proxy';
+import { _exe_, TypeStruct_exe_ } from '../../projects/structexe/src/structexe';
 
 @Component({
   selector: 'app-root',
@@ -26,113 +25,8 @@ export class AppComponent {
 
   constructor(private floatingWindowService: RedimFrameService) {
 
-    let test: string = 'structexe' // reactive-proxy
-
-    /*************************************************************************** 
-     * Use ReactiveState
-     *
-     * GUÍA MAESTRA DE FUNCIONALIDADES - REACtIVESTATE
-     * Este archivo recorre todas las capacidades de la librería en un flujo lógico.
-     */
-
-    if (test === 'reactive-proxy') {
-
-      // 1. INICIALIZACIÓN COMPLEJA
-      // Podemos empezar con datos o con un objeto vacío.
-      this.store = new ReactiveState({
-        app: {
-          nombre: "Mi App Reactiva",
-          versiones: [1, 2]
-        },
-        ajustes: new Map([['idioma', 'es']]),
-        etiquetas: new Set(['urgente'])
-      }) as any;
-
-      console.log("--- 1. Acceso y Boxeo de Primitivos ---");
-      // Los primitivos se comportan como tal, pero tienen superpoderes.
-      console.log(this.store.app.nombre + " v" + this.store.app.versiones[0]); // "Mi App Reactiva v1"
-      console.log("Ruta del nombre:", this.store.app.nombre._exe_.path); // ["app", "nombre"]
-
-
-      console.log("\n--- 2. Auto-vivienda (Creación Automática) ---");
-      // No existe 'usuarios', ni el índice 0, ni 'perfil'. La librería lo crea todo.
-      // Al usar un número [0], detecta que debe crear un Array.
-      this.store.usuarios[0].perfil.avatar = "http://imagen.png";
-      console.log("Estructura creada:", this.store._exe_.toJS().usuarios);
-      // Resultado: [{ perfil: { avatar: "http://imagen.png" } }]
-
-
-      console.log("\n--- 3. Suscripciones Inteligentes ---");
-      // Nos suscribimos a una ruta que acaba de ser creada.
-      const unsub = this.store.usuarios[0].perfil.avatar._exe_.subscribe((nuevoUrl: string) => {
-        console.log("📢 El avatar ha cambiado a:", nuevoUrl);
-      });
-
-      this.store.usuarios[0].perfil.avatar = "http://nuevo-avatar.jpg"; // Dispara el log
-
-
-      console.log("\n--- 4. Mapas Híbridos (Puntos + Métodos) ---");
-      // Podemos usar el Map como un objeto normal (notación de puntos)
-      this.store.ajustes.tema = "oscuro";
-
-      // O usar sus métodos nativos (siguen funcionando y son reactivos)
-      this.store.ajustes.set('notificaciones', true);
-
-      console.log("¿Tiene tema?:", this.store.ajustes.has('tema')); // true
-      console.log("Acceso por punto:", this.store.ajustes.tema);    // "oscuro"
-      console.log("Acceso por get():", this.store.ajustes.get('tema')); // "oscuro"
-
-
-      console.log("\n--- 5. Sets Transparentes ---");
-      // Los Sets gestionan la identidad para que el boxeo no rompa la lógica.
-      this.store.etiquetas.add("leído");
-      console.log("¿Existe 'leído'?:", this.store.etiquetas.has("leído")); // true (Transparente)
-
-
-      console.log("\n--- 6. Introspección y Navegación (Parent/Root) ---");
-      const nodoHijo = this.store.usuarios[0].perfil.avatar;
-
-      console.log("Key propia:", nodoHijo._exe_.key);           // "avatar"
-      console.log("Tipo de padre:", nodoHijo._exe_.type);       // "object"
-      console.log("¿Quién es mi padre?:", nodoHijo._exe_.parent._exe_.path); // ["usuarios", 0, "perfil"]
-
-      // Salto directo a la raíz desde las profundidades
-      const root = nodoHijo._exe_.getRoot();
-      console.log("Nombre desde la raíz:", root.app.nombre); // "Mi App Reactiva"
-
-
-      console.log("\n--- 7. Protecciones del Sistema ---");
-      try {
-        this.store.app._exe_ = "intento de hack"; // Error: _exe_ es de solo lectura
-      } catch (e) {
-        console.log("🛡️ Protección activada: No se puede sobrescribir _exe_");
-      }
-
-      try {
-        this.store.ajustes.size = 999; // Error: size es propiedad protegida del Map
-      } catch (e) {
-        console.log("🛡️ Protección activada: Métodos nativos de Map protegidos");
-      }
-
-
-      console.log("\n--- 8. Exportación de Datos (toJS vs cleanNode) ---");
-      // cleanNode nos da la referencia real (target) del proxy actual
-      const rawMap = this.store.ajustes._exe_.cleanNode;
-      console.log("¿Es el Map real?:", rawMap instanceof Map);
-
-      // toJS nos da una copia profunda totalmente limpia (sin Proxies, sin Boxes)
-      const copiaLimpia = this.store._exe_.toJS();
-
-      console.log("Copia JSON-ready:", JSON.stringify(copiaLimpia));
-      // En la copia limpia, las comparaciones estrictas funcionan:
-      console.log("¿Es 'es' un string puro?:", typeof copiaLimpia.ajustes.get('idioma') === 'string'); // true
-
-      console.log("\n--- 9. Borrado Reactivo ---");
-      delete this.store.app.versiones;
-      console.log("Versiones eliminadas. ¿Existe?:", this.store.app.versiones === undefined);
-
-      console.log("\n--- FIN DE LA DEMOSTRACIÓN ---");
-    }
+    // desactivamos los tests
+    let test: string = '' // 'structexe'
 
     if (test === 'structexe') {
 
@@ -198,11 +92,10 @@ export class AppComponent {
       console.log("\n--- FIN DE LA DEMOSTRACIÓN STRUCTEXE ---");
       this.store = this.store_typed;
     }
-
   }
 
   openChart() {
-    this.floatingWindowService.open(ChartComponent, {
+    this.floatingWindowService.openWindows(ChartComponent, {
       width: 50,
       height: 40,
       x: 5,
@@ -212,8 +105,9 @@ export class AppComponent {
   }
 
   openForm() {
+    // https://png.pngtree.com/png-clipart/20250116/original/pngtree-beautiful-amber-stone-featuring-unique-translucent-textures-png-image_20234893.png'; // 'https://png.pngtree.com/png-clipart/20250116/original/pngtree-beautiful-amber-stone-featuring-unique-translucent-textures-png-image_20234893.png
     this.store.app.nombre = 'Juan'
-    this.floatingWindowService.open(FormComponent, {
+    this.floatingWindowService.openWindows(FormComponent, {
       width: 40,
       height: 30,
       x: 30,

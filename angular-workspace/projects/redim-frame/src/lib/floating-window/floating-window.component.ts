@@ -20,10 +20,18 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() minWidth: number = 10; // Default 10vw
   @Input() minHeight: number = 10; // Default 10vh
 
-  @Input() scrollIcon: string = ''; // 'https://png.pngtree.com/png-clipart/20250116/original/pngtree-beautiful-amber-stone-featuring-unique-translucent-textures-png-image_20234893.png'
+  @Input() scrollIcon: string = ''
   @Input() scrollThumbSize: number = 2; // Default 2vw
 
-  @Output() change = new EventEmitter<{ width?: number, height?: number, x?: number, y?: number, focus?: boolean, close?: boolean }>();
+  @Output() change = new EventEmitter<{
+    width?: number,
+    height?: number,
+    x?: number,
+    y?: number,
+    focus?: boolean,
+    close?: boolean
+    zIndex?: number
+  }>();
 
   @HostBinding('style.--resizeBorder') resizeBorderStyle: string = this.resizeBorder + 'vw';
 
@@ -33,11 +41,12 @@ export class FloatingWindowComponent implements OnInit, AfterViewInit, OnDestroy
   @HostBinding('style.--top') get topStyle() { return this.y + 'vh'; }
   @HostBinding('style.--z-index') get zIndexStyle() { return this.zIndex; }
 
+
+  private xyDragPositionPixels = { x: 0, y: 0 };
   get dragPositionPixels() {
-    return {
-      x: (this.x * window.innerWidth) / 100,
-      y: (this.y * window.innerHeight) / 100
-    };
+    this.xyDragPositionPixels.x = (this.x * window.innerWidth) / 100;
+    this.xyDragPositionPixels.y = (this.y * window.innerHeight) / 100;
+    return this.xyDragPositionPixels;
   }
 
   private isResizing: boolean = false;

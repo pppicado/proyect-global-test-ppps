@@ -2,17 +2,9 @@ import { Injectable, ComponentRef, Injector, TemplateRef, Type, InjectionToken }
 import { Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal, TemplatePortal, Portal } from '@angular/cdk/portal';
 import { FloatingWindowComponent } from './floating-window/floating-window.component';
+import { FloatingWindowConfig } from './redim-frame.interface';
 
 export const WINDOW_DATA = new InjectionToken<any>('WINDOW_DATA');
-
-export interface FloatingWindowConfig {
-  title?: string;
-  width?: number;
-  height?: number;
-  x?: number;
-  y?: number;
-  data?: any;
-}
 
 @Injectable({
   providedIn: 'root'
@@ -22,11 +14,21 @@ export class RedimFrameService {
 
   constructor(private overlay: Overlay, private injector: Injector) { }
 
-  open<T>(componentOrTemplate: Type<T> | TemplateRef<T>, config: FloatingWindowConfig = {}): ComponentRef<FloatingWindowComponent> {
-    const positionStrategy = this.overlay.position()
-      .global()
-      .left('0px')
-      .top('0px');
+  openWindows<T>(componentOrTemplate: Type<T> | TemplateRef<T>, config: FloatingWindowConfig = {}): ComponentRef<FloatingWindowComponent> {
+
+    const positionStrategy = config.origin
+      ? this.overlay.position()
+        .flexibleConnectedTo(config.origin)
+        .withPositions([{
+          originX: 'start',
+          originY: 'bottom',
+          overlayX: 'start',
+          overlayY: 'top',
+        }])
+      : this.overlay.position()
+        .global()
+        .left('0px')
+        .top('0px');
 
     const overlayConfig = new OverlayConfig({
       positionStrategy,
@@ -45,6 +47,12 @@ export class RedimFrameService {
     windowInstance.y = config.y || 10;
     windowInstance.zIndex = this.zIndexCounter++;
     windowInstance.windowData = config.data;
+    windowInstance.scrollIcon = config.scrollIcon || '';
+    windowInstance.minHeight = config.minHeight || 10;
+    windowInstance.minWidth = config.minWidth || 10;
+    windowInstance.resizeBorder = config.resizeBorder || 0.5;
+    windowInstance.scrollThumbSize = config.scrollThumbSize || 2;
+    windowInstance.zIndex = config.zIndex || this.zIndexCounter++;
 
     // Create Injector for user component data
     const injector = Injector.create({
@@ -99,4 +107,6 @@ export class RedimFrameService {
 
     return windowRef;
   }
+
+
 }

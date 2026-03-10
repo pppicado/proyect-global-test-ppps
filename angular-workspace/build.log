@@ -1,0 +1,48 @@
+﻿
+> angular-workspace@0.0.0 build:all
+> npm run build:structexe && npm run build:reactive-proxy && npm run build:scrollbar && npm run build:windows
+
+
+> angular-workspace@0.0.0 build:structexe
+> tsc -p projects/structexe/tsconfig.esm.json && tsc -p projects/structexe/tsconfig.cjs.json && tsc -p projects/structexe/tsconfig.types.json
+
+
+> angular-workspace@0.0.0 build:reactive-proxy
+> tsc -p projects/reactive-proxy/tsconfig.esm.json && tsc -p projects/reactive-proxy/tsconfig.cjs.json && tsc -p projects/reactive-proxy/tsconfig.types.json
+
+
+> angular-workspace@0.0.0 build:scrollbar
+> ng build virtual-scrollbar
+
+Building Angular Package
+
+------------------------------------------------------------------------------
+Building entry point '@pppicado/virtual-scrollbar'
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Built Angular Package
+ - from: C:\proyect-global-test-ppps\angular-workspace\projects\virtual-scrollbar
+ - to:   C:\proyect-global-test-ppps\angular-workspace\dist\virtual-scrollbar
+------------------------------------------------------------------------------
+
+Build at: 2026-03-04T11:22:45.866Z - Time: 4852ms
+
+
+> angular-workspace@0.0.0 build:windows
+> ng build redim-frame
+
+Building Angular Package
+
+------------------------------------------------------------------------------
+Building entry point '@pppicado/redim-frame'
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Built Angular Package
+ - from: C:\proyect-global-test-ppps\angular-workspace\projects\redim-frame
+ - to:   C:\proyect-global-test-ppps\angular-workspace\dist\redim-frame
+------------------------------------------------------------------------------
+
+Build at: 2026-03-04T11:22:55.377Z - Time: 4973ms
+

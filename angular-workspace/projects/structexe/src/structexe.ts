@@ -12,6 +12,8 @@
 */
 
 import { ActionChange, datChange, datChangeObj, internal_exe_property, InternalUtils, ManagementReactionObj, processingType, Reaction, ReactionObj, stateAmbitReaction, typeChange, TypeStruct_exe_ } from "./inernalUtils";
+export type { ActionChange, datChange, Reaction, TypeStruct_exe_ };
+export { datChangeObj, internal_exe_property, InternalUtils, ManagementReactionObj, processingType, ReactionObj, stateAmbitReaction, typeChange };
 
 /**
  * *************************************************************************** 
@@ -319,12 +321,19 @@ export class _exe_ {
    * @returns {Reaction} debuelve la reacción ejecutada.
    */
   static react(thisArg: any, path: string | datChangeObj, action: ActionChange, component?: Object): Reaction {
+
     let manager = _exe_.intenal_utils.get_exe_(thisArg)
+
     if (typeof path == 'string') {
-      // posible mejora identificación de propiedad en caso de ser array/map/set PPPS
       path = (path.indexOf('/') === 0) ? path : manager.path + ((path.indexOf('[') === 0) ? '' : '|') + path
       path = new datChangeObj({ ruta: path, hito: typeChange.change })
     }
+
+    if (path.ruta == '')
+      path.ambito = stateAmbitReaction.all
+    else if (path.ambito == stateAmbitReaction.all)
+      path.ruta = ''
+
     return manager.rootManagement.react(path, action, component)
   }
 
@@ -766,52 +775,51 @@ export class ManagementReactionsObj {
    * @returns void
    */
   private _exe_React(dataChange: datChangeObj) {
-    
-      
-    
-      if (this.index[dataChange.hito][stateAmbitReaction.local].hasOwnProperty(dataChange.ruta))
-        this.index[dataChange.hito][stateAmbitReaction.local][dataChange.ruta].forEach((idActiva) => {
-          this.reactions[idActiva].manage.calls++
-          this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [dataChange])
-        })
 
-      if (this.index[typeChange.change][stateAmbitReaction.local].hasOwnProperty(dataChange.ruta)) 
-        this.index[typeChange.change][stateAmbitReaction.local][dataChange.ruta].forEach((idActiva) => {
-          if (_exe_.intenal_utils.stringify(this.reactions[idActiva].action) === _exe_.intenal_utils.stringify(dataChange.action)) {
-            zxczxc
-            this.reactions[idActiva].manage.calls++
-            this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [dataChange])
-          }
-        })
-
-
-      
-        
-      
-
-      // filtraremos las rutas que sean un segmento de la actual siendo estos los padres y llamando a sus subcripciones de tipo hijo
-      dataChange.ruta.split('|').forEach((nivel, index) => {
-        let ruta = dataChange.ruta.split('|', index).join('|')
-        if (this.index[dataChange.hito][stateAmbitReaction.childens].hasOwnProperty(ruta))
-          this.index[dataChange.hito][stateAmbitReaction.childens][ruta].forEach((idActiva) => {
-            let hijo = new datChangeObj(dataChange)
-            hijo.ambito = stateAmbitReaction.childens
-            this.reactions[idActiva].manage.calls++
-            this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [hijo])
-          })
+    // filtraremos las reacciones locales
+    if (this.index[dataChange.hito][stateAmbitReaction.local].hasOwnProperty(dataChange.ruta))
+      this.index[dataChange.hito][stateAmbitReaction.local][dataChange.ruta].forEach((idActiva) => {
+        this.reactions[idActiva].manage.calls++
+        this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [dataChange])
       })
 
-      // filtraremos las rutas que empiecen por la ruta actual siendo estos los hijos y llamando a sus subcripciones de tipo padre
-      let rutasPadre = Object.keys(this.index[dataChange.hito][stateAmbitReaction.fathers]).filter((ruta) => ruta.indexOf(dataChange.ruta) === 0)
-      rutasPadre.forEach((ruta) => {
-        this.index[dataChange.hito][stateAmbitReaction.fathers][ruta].forEach((idActiva) => {
-          let cambioPadre = new datChangeObj(dataChange)
-          cambioPadre.ambito = stateAmbitReaction.fathers
+    // filtraremos las rutas que sean un segmento de la actual siendo estos los padres y llamando a sus subcripciones de tipo hijo
+    dataChange.ruta.split('|').forEach((nivel, index) => {
+      let ruta = dataChange.ruta.split('|', index).join('|')
+      if (this.index[dataChange.hito][stateAmbitReaction.childens].hasOwnProperty(ruta))
+        this.index[dataChange.hito][stateAmbitReaction.childens][ruta].forEach((idActiva) => {
+          let hijo = new datChangeObj(dataChange)
+          hijo.ambito = stateAmbitReaction.childens
           this.reactions[idActiva].manage.calls++
-          this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [cambioPadre])
+          this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [hijo])
         })
+    })
+
+    // filtraremos las rutas que empiecen por la ruta actual siendo estos los hijos y llamando a sus subcripciones de tipo padre
+    let rutasPadre = Object.keys(this.index[dataChange.hito][stateAmbitReaction.fathers]).filter((ruta) => ruta.indexOf(dataChange.ruta) === 0)
+    rutasPadre.forEach((ruta) => {
+      this.index[dataChange.hito][stateAmbitReaction.fathers][ruta].forEach((idActiva) => {
+        let cambioPadre = new datChangeObj(dataChange)
+        cambioPadre.ambito = stateAmbitReaction.fathers
+        this.reactions[idActiva].manage.calls++
+        this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [cambioPadre])
       })
-    
+    })
+
+    // reacciones globales
+    if (this.index[dataChange.hito][stateAmbitReaction.all].hasOwnProperty('')) {
+      this.index[dataChange.hito][stateAmbitReaction.all][''].forEach((idActiva) => {
+        this.reactions[idActiva].manage.calls++
+        this.reactions[idActiva].action.apply(this.reactions[idActiva].thisArg, [dataChange])
+      })
+    }
+
+    // si el hito no es change y los datos distintos, ejecutaremos la llamada para change
+    if (dataChange.hito != typeChange.change && _exe_.intenal_utils.stringify(dataChange.datoActual) != _exe_.intenal_utils.stringify(dataChange.datoNuevo)) {
+      dataChange.hito = typeChange.change
+      this._exe_React(dataChange)
+    }
+
   }
 
 }    
