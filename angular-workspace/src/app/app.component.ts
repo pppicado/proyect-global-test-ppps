@@ -1,8 +1,10 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, ComponentRef } from '@angular/core';
 import { RedimFrameService } from '@pppicado/redim-frame';
 import { ChartComponent } from './chart/chart.component';
 import { FormComponent } from './form/form.component';
 import { _exe_, TypeStruct_exe_ } from '@pppicado/structexe';
+
+// https://png.pngtree.com/png-clipart/20250116/original/pngtree-beautiful-amber-stone-featuring-unique-translucent-textures-png-image_20234893.png'; // 'https://png.pngtree.com/png-clipart/20250116/original/pngtree-beautiful-amber-stone-featuring-unique-translucent-textures-png-image_20234893.png   
 
 @Component({
   selector: 'app-root',
@@ -24,6 +26,8 @@ export class AppComponent {
   store_typed!: TypeStruct_exe_<typeof this.rawData>;
 
   @ViewChild('windowOrigin', { read: ElementRef }) windowOrigin!: ElementRef;
+
+  private lastChartRef: ComponentRef<any> | null = null;
 
   constructor(private floatingWindowService: RedimFrameService) {
 
@@ -97,33 +101,40 @@ export class AppComponent {
   }
 
   openChart() {
-    this.floatingWindowService.openWindows(ChartComponent, {
+    this.lastChartRef = this.floatingWindowService.openWindows(ChartComponent, {
       width: 50,
       height: 40,
       x: 5,
       y: 30,
-      data: { id: 1, name: this.store.app.nombre },
+      data: { data: { id: 1, name: this.store.app.nombre } },
       origin: this.windowOrigin.nativeElement
+    });
+
+    // Clear reference when the chart window is closed
+    this.lastChartRef.instance.change.subscribe((event: any) => {
+      if (event.close) {
+        this.lastChartRef = null;
+      }
     });
   }
 
   openForm() {
-    // https://png.pngtree.com/png-clipart/20250116/original/pngtree-beautiful-amber-stone-featuring-unique-translucent-textures-png-image_20234893.png'; // 'https://png.pngtree.com/png-clipart/20250116/original/pngtree-beautiful-amber-stone-featuring-unique-translucent-textures-png-image_20234893.png
-    this.store.app.nombre = 'Juan'
+    const origin = this.windowOrigin.nativeElement;
+
     this.floatingWindowService.openWindows(FormComponent, {
       width: 40,
       height: 30,
       x: 30,
       y: 20,
       data: { email: 'x@ejemplo.com' },
-      origin: this.windowOrigin.nativeElement
+      origin
     });
   }
 
   openModalExample() {
     this.floatingWindowService.openModal(FormComponent, {
       data: { email: 'modal@ejemplo.com' },
-      origin: this.windowOrigin.nativeElement
+      // origin: this.windowOrigin.nativeElement
     });
   }
 }

@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RedimFrameModule } from '@pppicado/redim-frame';
 
@@ -16,6 +17,7 @@ import { FormComponent } from './form/form.component';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
+    CommonModule,
     RedimFrameModule
   ],
   providers: [],

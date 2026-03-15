@@ -125,6 +125,7 @@ export class RedimFrameService {
 
     const overlayRef = this.overlay.create(overlayConfig);
     const windowPortal = new ComponentPortal(ModalWindowComponent);
+    config.origin.
     const windowRef = overlayRef.attach(windowPortal);
     const windowInstance = windowRef.instance;
 

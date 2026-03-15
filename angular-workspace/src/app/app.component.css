@@ -1,8 +1,8 @@
 .container {
   position: relative;
-  width: 50vw;
-  height: 50vh;
-  margin: 25vh auto;
+  width: 75vw;
+  height: 75vh;
+  margin: 12.5vh auto;
   border: 2px solid #ccc;
   border-radius: 8px;
   background-color: #f8f9fa;

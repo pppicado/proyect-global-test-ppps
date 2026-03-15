@@ -1,6 +1,6 @@
 import { Directive, EventEmitter, Input, Output, OnDestroy, ComponentRef } from '@angular/core';
 import { Portal, CdkPortalOutletAttachedRef } from '@angular/cdk/portal';
-
+import { reflectComponentType } from '@angular/core';
 @Directive({
   selector: '[libBaseWindow]'
 })
@@ -37,9 +37,14 @@ export class BaseWindowDirective implements OnDestroy {
 
   onPortalAttached(ref: CdkPortalOutletAttachedRef) {
     if (ref instanceof ComponentRef && this.windowData) {
-      Object.keys(this.windowData).forEach(key => {
-        ref.setInput(key, this.windowData[key]);
-      });
+      const mirror = reflectComponentType(ref.componentType);
+      if (mirror) {
+        Object.keys(this.windowData).forEach(key => {
+          if (mirror.inputs.some(input => input.propName === key)) {
+            ref.setInput(key, this.windowData[key]);
+          }
+        });
+      }
     }
   }
 
